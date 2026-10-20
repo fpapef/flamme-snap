@@ -1,0 +1,9 @@
+# Clé de signature : jamais publiée
+*.jks
+*.keystore
+
+# Fichiers générés
+build/
+*.apk
+app/res/mipmap-*dpi/
+__pycache__/

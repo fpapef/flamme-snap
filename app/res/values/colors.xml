@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="snap_yellow">#FFFC00</color>
+    <color name="ink">#111111</color>
+    <color name="muted">#666666</color>
+    <color name="bg">#FFFFFF</color>
+    <color name="bar_bg">#FFFBD1</color>
+    <color name="input_stroke">#D6D6D6</color>
+    <color name="input_bg">#FAFAFA</color>
+    <color name="flame_outer">#FF5A1F</color>
+    <color name="flame_inner">#FFC93C</color>
+</resources>
