@@ -11,10 +11,11 @@ Tu tapes le pseudo de ton ami : l'appli ouvre le formulaire d'assistance de Snap
 - **Tu gardes la main** : c'est toi qui coches le reCAPTCHA et qui touches Envoyer. L'appli n'envoie jamais le formulaire à ta place.
 - **Réglages** : ton pseudo, ton e-mail, ton numéro et le message envoyé à Snapchat.
 - **Secours navigateur** : si le reCAPTCHA ne s'affiche pas, un bouton copie le pseudo et ouvre le formulaire dans ton navigateur.
+- **Motion design** : flamme animée qui vacille et lance des braises, transitions, carte d'état animée, éclat des champs remplis et confettis.
 
 ## Installation
 
-1. Télécharge le fichier `FlammeSnap-1.0.apk` de la dernière version dans [Releases](../../releases).
+1. Télécharge le fichier `FlammeSnap-1.1.apk` de la dernière version dans [Releases](../../releases).
 2. Ouvre-le sur le téléphone et autorise l'installation d'applis de source inconnue si Android le demande.
 3. Au premier lancement, ouvre **Réglages** et entre : ton nom d'utilisateur Snapchat, ton e-mail et ton numéro avec l'indicatif du pays (par exemple +221).
 
@@ -30,6 +31,7 @@ Android 7 ou plus récent. Chaque nouvelle version s'installe par-dessus la pré
 
 | Version | Nouveautés |
 |---|---|
+| [1.1](../../releases/tag/v1.1) | Motion design : flamme animée, transitions, carte d'état, confettis |
 | [1.0](../../releases/tag/v1.0) | Première version : remplissage automatique du formulaire, secours navigateur, réglages |
 
 Le détail est dans [`CHANGELOG.md`](CHANGELOG.md).

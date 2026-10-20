@@ -17,15 +17,15 @@
     <string name="lbl_phone">Ton numéro de portable</string>
     <string name="lbl_description">Description (message envoyé à Snapchat)</string>
     <string name="save">Enregistrer</string>
-    <string name="saved">Réglages enregistrés</string>
+    <string name="saved">✓  Enregistré</string>
     <string name="settings_note">Ces infos restent uniquement sur ton téléphone.</string>
 
     <!-- Formulaire -->
     <string name="form_title">Formulaire Snapchat</string>
     <string name="status_loading">Chargement du formulaire…</string>
     <string name="status_filling">Remplissage automatique en cours…</string>
-    <string name="status_done">✅ Formulaire rempli pour %1$s. Vérifie, coche le reCAPTCHA puis appuie sur « Envoyer ».</string>
-    <string name="status_partial">⚠️ À compléter à la main : %1$s. Ou appuie sur « Remplir à nouveau ».</string>
+    <string name="status_done">Formulaire rempli pour %1$s. Vérifie, coche le reCAPTCHA puis appuie sur « Envoyer ».</string>
+    <string name="status_partial">À compléter à la main : %1$s. Ou appuie sur « Remplir à nouveau ».</string>
     <string name="status_load_error">Impossible de charger le formulaire. Vérifie ta connexion puis appuie sur « Remplir à nouveau ».</string>
     <string name="refill">Remplir à nouveau</string>
     <string name="open_browser">Ouvrir dans le navigateur</string>

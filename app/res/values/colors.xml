@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="snap_yellow">#FFFC00</color>
+    <color name="hero_top">#FFFAD1</color>
     <color name="ink">#111111</color>
     <color name="muted">#666666</color>
     <color name="bg">#FFFFFF</color>

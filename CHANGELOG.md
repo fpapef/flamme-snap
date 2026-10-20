@@ -1,5 +1,12 @@
 # Journal des versions
 
+## 1.1 — 20 octobre 2026
+
+- Flamme animée dessinée à la main : elle vacille, lance des braises, sursaute quand tu tapes, s'embrase quand tu continues et se recroqueville si le champ est vide.
+- Apparition en cascade, transitions entre écrans, boutons qui rebondissent, reflet sur le bouton principal, vibrations.
+- Écran du formulaire : carte d'état animée (chargement, coche qui se dessine), barre de chargement, éclat des champs remplis dans la page et confettis quand tout est rempli.
+- Écran de lancement d'Android 12 et icône aux couleurs de la flamme.
+
 ## 1.0 — 20 octobre 2026
 
 Première version.

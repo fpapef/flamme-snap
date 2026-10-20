@@ -1,5 +1,6 @@
 package sn.flammesnap
 
+import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ActivityNotFoundException
@@ -7,11 +8,13 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
+import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.animation.DecelerateInterpolator
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
@@ -22,7 +25,6 @@ import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.Button
-import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import org.json.JSONObject
@@ -43,12 +45,26 @@ class FormActivity : Activity() {
 
     private lateinit var web: WebView
     private lateinit var status: TextView
-    private lateinit var progress: ProgressBar
+    private lateinit var badge: StatusBadge
+    private lateinit var card: View
+    private lateinit var progress: GlowProgress
+    private lateinit var confetti: ConfettiView
+    private val cardBg = GradientDrawable()
+    private var cardColor = 0
+    private var cardAnim: ValueAnimator? = null
 
     private var friend = ""
     private var fillScript = ""
     private var loadFailed = false
+    private var celebrated = false
+    private var webShown = false
     private var fileCallback: ValueCallback<Array<Uri>>? = null
+
+    private val colLoading = Motion.col("#FFFBD1")
+    private val colFilling = Motion.col("#FFF3C4")
+    private val colDone = Motion.col("#E3F6E8")
+    private val colWarn = Motion.col("#FFEBDA")
+    private val colError = Motion.col("#FDE4E4")
 
     @SuppressLint("SetJavaScriptEnabled", "AddJavascriptInterface")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -62,10 +78,32 @@ class FormActivity : Activity() {
 
         web = findViewById(R.id.web)
         status = findViewById(R.id.status)
+        badge = findViewById(R.id.badge)
+        card = findViewById(R.id.status_card)
         progress = findViewById(R.id.progress)
+        confetti = findViewById(R.id.confetti)
 
-        findViewById<Button>(R.id.refill_button).setOnClickListener { remplirANouveau() }
-        findViewById<Button>(R.id.browser_button).setOnClickListener { ouvrirDansNavigateur() }
+        cardBg.cornerRadius = Motion.dp(card, 18f)
+        cardColor = colLoading
+        cardBg.setColor(cardColor)
+        card.background = cardBg
+
+        val refill = findViewById<Button>(R.id.refill_button)
+        val browser = findViewById<Button>(R.id.browser_button)
+        refill.setOnClickListener { remplirANouveau() }
+        browser.setOnClickListener { ouvrirDansNavigateur() }
+        Motion.pressable(refill)
+        Motion.pressable(browser)
+
+        // Entrée : la carte d'état glisse depuis le haut, la page apparaît en fondu.
+        if (Motion.animationsOn()) {
+            card.alpha = 0f
+            card.translationY = -Motion.dp(card, 18f)
+            card.animate().alpha(1f).translationY(0f).setStartDelay(140).setDuration(520)
+                .setInterpolator(Motion.EMPHASIZED).start()
+            web.alpha = 0f
+            web.postDelayed({ montrerPage() }, 6000)
+        }
 
         val s = web.settings
         s.javaScriptEnabled = true
@@ -93,7 +131,7 @@ class FormActivity : Activity() {
                 try {
                     startActivity(Intent(Intent.ACTION_VIEW, request.url))
                 } catch (e: Exception) {
-                    // aucun app pour ce lien : on ignore
+                    // aucune app pour ce lien : on ignore
                 }
                 return true
             }
@@ -103,21 +141,23 @@ class FormActivity : Activity() {
             }
 
             override fun onPageFinished(view: WebView, url: String?) {
+                montrerPage()
                 if (!loadFailed && estLeFormulaire(url)) injecter()
             }
 
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
                 if (request.isForMainFrame) {
                     loadFailed = true
-                    status.setText(R.string.status_load_error)
+                    montrerPage()
+                    afficherEtat(getString(R.string.status_load_error), StatusBadge.ERROR)
                 }
             }
         }
 
         web.webChromeClient = object : WebChromeClient() {
             override fun onProgressChanged(view: WebView, newProgress: Int) {
-                progress.progress = newProgress
-                progress.visibility = if (newProgress < 100) View.VISIBLE else View.GONE
+                progress.setProgress(newProgress)
+                if (newProgress >= 70) montrerPage()
             }
 
             // Permet d'ajouter une capture d'écran dans « Pièces jointes ».
@@ -138,8 +178,14 @@ class FormActivity : Activity() {
             }
         }
 
-        status.setText(R.string.status_loading)
+        afficherEtat(getString(R.string.status_loading), StatusBadge.LOADING)
         web.loadUrl(FORM_URL)
+    }
+
+    private fun montrerPage() {
+        if (webShown || isDestroyed) return
+        webShown = true
+        web.animate().alpha(1f).setDuration(450).setInterpolator(DecelerateInterpolator()).start()
     }
 
     private fun estLeFormulaire(url: String?): Boolean =
@@ -154,17 +200,55 @@ class FormActivity : Activity() {
         cfg.put("phone", p.telephone)
         cfg.put("description", p.description)
         cfg.put("friend", friend)
-        status.setText(R.string.status_filling)
+        celebrated = false
+        afficherEtat(getString(R.string.status_filling), StatusBadge.FILLING)
         web.evaluateJavascript("window.__snapFillCfg = $cfg;\n$fillScript", null)
     }
 
     private fun remplirANouveau() {
         if (loadFailed || !estLeFormulaire(web.url)) {
-            status.setText(R.string.status_loading)
+            afficherEtat(getString(R.string.status_loading), StatusBadge.LOADING)
             web.loadUrl(FORM_URL)
         } else {
             injecter()
         }
+    }
+
+    /** Change le message, la pastille et la couleur de la carte, en douceur. */
+    private fun afficherEtat(texte: CharSequence, etat: Int) {
+        badge.show(etat)
+        val cible = when (etat) {
+            StatusBadge.DONE -> colDone
+            StatusBadge.WARN -> colWarn
+            StatusBadge.ERROR -> colError
+            StatusBadge.FILLING -> colFilling
+            else -> colLoading
+        }
+        if (cible != cardColor) {
+            cardAnim?.cancel()
+            val a = ValueAnimator.ofArgb(cardColor, cible)
+            a.duration = 450
+            a.addUpdateListener { va ->
+                cardColor = va.animatedValue as Int
+                cardBg.setColor(cardColor)
+            }
+            a.start()
+            cardAnim = a
+        }
+        if (status.text.toString() == texte.toString()) return
+        if (!Motion.animationsOn()) {
+            status.text = texte
+            return
+        }
+        val d = Motion.dp(status, 1f)
+        status.animate().cancel()
+        status.animate().alpha(0f).translationY(-6 * d).setStartDelay(0).setDuration(130)
+            .withEndAction {
+                status.text = texte
+                status.translationY = 8 * d
+                status.animate().alpha(1f).translationY(0f).setDuration(320)
+                    .setInterpolator(Motion.EMPHASIZED).start()
+            }.start()
     }
 
     /** Résultat envoyé par le script (thread WebView → thread UI). */
@@ -177,10 +261,6 @@ class FormActivity : Activity() {
 
     private fun afficherResultat(json: String) {
         val res = try { JSONObject(json) } catch (e: Exception) { return }
-        if (res.optBoolean("done")) {
-            status.text = getString(R.string.status_done, friend)
-            return
-        }
         val champs = res.optJSONObject("fields") ?: JSONObject()
         val noms = linkedMapOf(
             "email" to R.string.f_email,
@@ -191,15 +271,35 @@ class FormActivity : Activity() {
             "description" to R.string.f_description
         )
         val manquants = ArrayList<String>()
-        for ((cle, nom) in noms) {
-            val etat = champs.optString(cle, "absent")
-            if (etat != "ok" && etat != "vide") manquants.add(getString(nom))
+        if (!res.optBoolean("done")) {
+            for ((cle, nom) in noms) {
+                val etat = champs.optString(cle, "absent")
+                if (etat != "ok" && etat != "vide") manquants.add(getString(nom))
+            }
         }
-        status.text = if (manquants.isEmpty()) {
-            getString(R.string.status_done, friend)
+        if (manquants.isEmpty()) {
+            afficherEtat(getString(R.string.status_done, friend), StatusBadge.DONE)
+            celebrer()
         } else {
-            getString(R.string.status_partial, manquants.joinToString(", "))
+            afficherEtat(getString(R.string.status_partial, manquants.joinToString(", ")), StatusBadge.WARN)
+            Motion.shake(card)
+            Motion.hapticNo(card)
         }
+    }
+
+    /** Petite fête quand tout est rempli. */
+    private fun celebrer() {
+        if (celebrated) return
+        celebrated = true
+        Motion.hapticOk(card)
+        Motion.pop(card, 0.03f)
+        val c = IntArray(2)
+        val k = IntArray(2)
+        card.getLocationInWindow(c)
+        confetti.getLocationInWindow(k)
+        val ox = c[0] - k[0] + card.width / 2f
+        val oy = c[1] - k[1] + card.height.toFloat()
+        confetti.burst(ox, oy, 120)
     }
 
     /** Secours si le reCAPTCHA ne s'affiche pas : copie le pseudo et ouvre le navigateur. */
@@ -238,6 +338,7 @@ class FormActivity : Activity() {
     }
 
     override fun onDestroy() {
+        cardAnim?.cancel()
         (web.parent as? ViewGroup)?.removeView(web)
         web.destroy()
         super.onDestroy()

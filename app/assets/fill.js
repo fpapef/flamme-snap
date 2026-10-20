@@ -317,6 +317,38 @@
     return comboChoose(label, c, passive);
   }
 
+  /* ---------- éclat visuel des champs remplis (aucune autre modification) ---------- */
+
+  var flashQ = [], flashed = new WeakSet();
+  function flashTarget(f, it) {
+    var c = it.ctrl;
+    if (!f.choice) return c;
+    if (c && c.tagName === 'SELECT') return c;
+    var g = it.label ? radioGroup(it.label) : null;
+    var r = g && g.querySelector('input[type=radio]:checked');
+    if (r) return r.closest('label') || r.parentElement;
+    return c ? (c.closest('[data-garden-id$="trigger"]') || wrapperOf(c, it.label || c)) : null;
+  }
+  function flash(el) {
+    if (el && !flashed.has(el)) { flashed.add(el); flashQ.push(el); }
+  }
+  function flushFlash() {
+    var q = flashQ;
+    flashQ = [];
+    q.forEach(function (el, i) {
+      setTimeout(function () {
+        try {
+          if (!el.animate || !el.isConnected) return;
+          var bg = getComputedStyle(el).backgroundColor || 'rgba(0,0,0,0)';
+          el.animate([
+            { boxShadow: '0 0 0 0 rgba(255,176,0,0.9)', backgroundColor: 'rgba(255,248,170,1)' },
+            { boxShadow: '0 0 0 12px rgba(255,176,0,0)', backgroundColor: bg }
+          ], { duration: 1100, easing: 'cubic-bezier(.2,0,0,1)' });
+        } catch (e) {}
+      }, i * 120);
+    });
+  }
+
   /* ---------- boucle ---------- */
 
   function finishOk(st) {
@@ -340,11 +372,13 @@
         var r = false;
         try { r = f.choice ? fillChoice(it.label, it.ctrl, passive) : fillText(it.ctrl, String(f.value), passive); }
         catch (e) { r = false; }
-        if (!r) ok = false;
+        if (r) { try { flash(flashTarget(f, it)); } catch (e) {} }
+        else ok = false;
       });
       st[f.key] = ok ? 'ok' : 'en_cours';
       if (!ok) allOk = false;
     });
+    flushFlash();
 
     stable = allOk ? stable + 1 : 0;
     if (stable >= STABLE) { finishOk(st); return; }

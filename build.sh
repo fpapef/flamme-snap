@@ -13,8 +13,8 @@ SIGNER="$T/uber-apk-signer.jar"
 KS="${KEYSTORE:-$HOME/flammesnap-release.jks}"
 # Clé de signature : jamais publiée. Mot de passe dans la variable KS_PASS.
 : "${KS_PASS:?Définis KS_PASS (mot de passe de la clé de signature)}"
-VERSION_CODE=1
-VERSION_NAME="1.0"
+VERSION_CODE=2
+VERSION_NAME="1.1"
 
 B=build
 rm -rf "$B"
