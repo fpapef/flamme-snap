@@ -8,7 +8,10 @@ import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.CookieManager
@@ -17,25 +20,47 @@ import android.webkit.ValueCallback
 import android.webkit.WebChromeClient
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
 import android.widget.TextView
 import android.widget.Toast
 import org.json.JSONObject
+import java.util.regex.Pattern
 
 /**
- * Ouvre le formulaire officiel de Snapchat et remplit les champs.
+ * Ouvre le formulaire officiel de Snapchat et remplit les champs, ami après ami.
  * L'app ne coche jamais le reCAPTCHA et n'envoie jamais le formulaire :
- * c'est l'utilisateur qui le fait.
+ * c'est l'utilisateur qui le fait. Elle repère seulement que l'envoi a eu lieu.
  */
 class FormActivity : Activity() {
 
     companion object {
-        const val EXTRA_FRIEND = "friend"
+        const val EXTRA_FRIENDS = "friends"
+        const val EXTRA_DAYS = "days"
+        const val EXTRA_LOST = "lost"
         const val FORM_URL =
             "https://help.snapchat.com/hc/fr-fr/requests/new?co=true&ticket_form_id=149423"
         private const val REQ_FILE = 42
+
+        /** Envoi d'une demande Zendesk : POST vers …/requests. */
+        private val ENVOI = Pattern.compile("/requests(\\.json)?/?$")
+
+        /** Après l'envoi : le formulaire est-il toujours là ? un message de succès ? */
+        private const val VERIF_JS = """(function(){
+  try {
+    var ls = document.querySelectorAll('label,legend'), form = false;
+    for (var i = 0; i < ls.length; i++) {
+      var t = (ls[i].textContent || '').toLowerCase();
+      if (t.indexOf('type de conversation') >= 0 || t.indexOf('conversation type') >= 0 || t.indexOf('votre ami') >= 0) { form = true; break; }
+    }
+    if (document.querySelector('.notification-error, .notification-alert, [role=alert] .error')) form = true;
+    var b = (document.body ? document.body.innerText : '').toLowerCase();
+    var ok = /(demande a (bien )?(été|ete) (envoy|soumis|transmis|reçu|recu))|(request (has been|was) (successfully )?(submitted|sent|received))|(nous avons (bien )?re(ç|c)u)|(we.ve received)/.test(b);
+    return { form: form, ok: ok, ready: document.readyState === 'complete' };
+  } catch (e) { return { form: true, ok: false, ready: true }; }
+})()"""
     }
 
     private lateinit var web: WebView
@@ -45,13 +70,27 @@ class FormActivity : Activity() {
     private lateinit var badge: StatusBadge
     private lateinit var card: View
     private lateinit var progress: GlowProgress
+    private lateinit var navTitle: TextView
+    private lateinit var nextButton: TextView
 
-    private var friend = ""
+    private val handler = Handler(Looper.getMainLooper())
+    private var amis = ArrayList<String>()
+    private var index = 0
+    private var jours = 0
+    private var decalage = -1
     private var fillScript = ""
     private var loadFailed = false
-    private var celebrated = false
     private var webShown = false
+    private var celebrated = false
+    private var sentCurrent = false
+    private var pendingSubmit = false
+    private var clearHistoryNext = false
+    private var historyId = -1L
+    private var sentCount = 0
     private var fileCallback: ValueCallback<Array<Uri>>? = null
+
+    private val verifRunnable = Runnable { verifierEnvoi() }
+    private val envoiRunnable = Runnable { envoiDetecte() }
 
     @SuppressLint("SetJavaScriptEnabled", "AddJavascriptInterface")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,7 +98,13 @@ class FormActivity : Activity() {
         setContentView(R.layout.activity_form)
         Typo.apply(window.decorView)
 
-        friend = intent.getStringExtra(EXTRA_FRIEND) ?: ""
+        amis = intent.getStringArrayListExtra(EXTRA_FRIENDS) ?: ArrayList()
+        if (amis.isEmpty()) {
+            finish()
+            return
+        }
+        jours = intent.getIntExtra(EXTRA_DAYS, 0)
+        decalage = intent.getIntExtra(EXTRA_LOST, -1)
         fillScript = assets.open("fill.js").bufferedReader(Charsets.UTF_8).use { it.readText() }
 
         web = findViewById(R.id.web)
@@ -69,16 +114,23 @@ class FormActivity : Activity() {
         badge = findViewById(R.id.badge)
         card = findViewById(R.id.status_card)
         progress = findViewById(R.id.progress)
+        navTitle = findViewById(R.id.nav_title)
+        nextButton = findViewById(R.id.next_button)
 
         val back = findViewById<View>(R.id.back_button)
         val refill = findViewById<View>(R.id.refill_button)
         val browser = findViewById<View>(R.id.browser_button)
         back.setOnClickListener { finish() }
         refill.setOnClickListener { remplirANouveau() }
-        browser.setOnClickListener { ouvrirDansNavigateur() }
+        browser.setOnClickListener { kitNavigateur() }
+        nextButton.setOnClickListener { suivant() }
         Motion.highlight(back)
         Motion.highlight(refill)
         Motion.highlight(browser)
+        Motion.highlight(nextButton)
+
+        majNav()
+        majActions()
 
         // Entrée : la carte d'état se dépose en douceur, la page apparaît en fondu.
         if (Motion.animationsOn()) {
@@ -118,13 +170,37 @@ class FormActivity : Activity() {
                 return true
             }
 
+            // On ne modifie aucune requête : on repère seulement l'envoi du formulaire.
+            override fun shouldInterceptRequest(view: WebView, request: WebResourceRequest): WebResourceResponse? {
+                try {
+                    if ("POST".equals(request.method, ignoreCase = true)) {
+                        val host = request.url.host ?: ""
+                        val path = request.url.path ?: ""
+                        if (host.endsWith("snapchat.com") && ENVOI.matcher(path).find()) {
+                            handler.post(envoiRunnable)
+                        }
+                    }
+                } catch (e: Exception) {
+                }
+                return null
+            }
+
             override fun onPageStarted(view: WebView, url: String?, favicon: android.graphics.Bitmap?) {
                 loadFailed = false
             }
 
             override fun onPageFinished(view: WebView, url: String?) {
                 montrerPage()
-                if (!loadFailed && estLeFormulaire(url)) injecter()
+                if (clearHistoryNext) {
+                    clearHistoryNext = false
+                    web.clearHistory()
+                }
+                if (pendingSubmit) {
+                    handler.removeCallbacks(verifRunnable)
+                    handler.postDelayed(verifRunnable, 3500)
+                    return
+                }
+                if (!loadFailed && !sentCurrent && estUnePageDeDemande(url)) injecter()
             }
 
             override fun onReceivedError(view: WebView, request: WebResourceRequest, error: WebResourceError) {
@@ -164,37 +240,142 @@ class FormActivity : Activity() {
         web.loadUrl(FORM_URL)
     }
 
+    private fun ami(): String = amis[index]
+
+    private fun estUnePageDeDemande(url: String?): Boolean =
+        url != null && url.contains("help.snapchat.com") && url.contains("/requests")
+
     private fun montrerPage() {
         if (webShown || isDestroyed) return
         webShown = true
         web.animate().alpha(1f).setDuration(500).setInterpolator(Motion.IOS).start()
     }
 
-    private fun estLeFormulaire(url: String?): Boolean =
-        url != null && url.contains("help.snapchat.com") && url.contains("/requests/new")
+    private fun majNav() {
+        navTitle.text = if (amis.size > 1) getString(R.string.nav_count, index + 1, amis.size)
+        else getString(R.string.form_title)
+    }
 
-    /** Envoie le script de remplissage avec les valeurs à la page. */
+    private fun majActions() {
+        val reste = index < amis.size - 1
+        when {
+            reste -> {
+                nextButton.text = getString(R.string.next_friend, amis[index + 1])
+                nextButton.visibility = View.VISIBLE
+            }
+            sentCurrent && amis.size > 1 -> {
+                nextButton.text = getString(R.string.finish)
+                nextButton.visibility = View.VISIBLE
+            }
+            else -> nextButton.visibility = View.GONE
+        }
+    }
+
+    /** Envoie le script de remplissage avec les valeurs du profil et de l'ami en cours. */
     private fun injecter() {
         val p = Prefs.lire(this)
         val cfg = JSONObject()
         cfg.put("email", p.email)
         cfg.put("username", p.pseudo)
         cfg.put("phone", p.telephone)
-        cfg.put("description", p.description)
-        cfg.put("friend", friend)
+        cfg.put("description", messageComplet(p))
+        cfg.put("friend", ami())
         celebrated = false
         afficherEtat(getString(R.string.st_filling_title), getString(R.string.st_filling_detail), StatusBadge.FILLING)
         web.evaluateJavascript("window.__snapFillCfg = $cfg;\n$fillScript", null)
     }
 
+    private fun messageComplet(p: Profil): String =
+        p.description + Pseudos.details(p.langue, ami(), jours, decalage, System.currentTimeMillis())
+
     private fun remplirANouveau() {
-        if (loadFailed || !estLeFormulaire(web.url)) {
+        if (loadFailed || !estUnePageDeDemande(web.url)) {
             afficherEtat(getString(R.string.st_loading_title), getString(R.string.st_loading_detail), StatusBadge.LOADING)
             web.loadUrl(FORM_URL)
         } else {
+            sentCurrent = false
             injecter()
         }
     }
+
+    // ---------- envoi ----------
+
+    private fun envoiDetecte() {
+        if (sentCurrent || pendingSubmit || isDestroyed) return
+        pendingSubmit = true
+        afficherEtat(getString(R.string.st_sending_title), getString(R.string.st_sending_detail), StatusBadge.LOADING)
+        handler.removeCallbacks(verifRunnable)
+        handler.postDelayed(verifRunnable, 5000) // si la page ne se recharge pas (envoi en arrière-plan)
+    }
+
+    private fun verifierEnvoi() {
+        if (!pendingSubmit || isDestroyed) return
+        web.evaluateJavascript(VERIF_JS, object : ValueCallback<String> {
+            override fun onReceiveValue(value: String?) {
+                var form = true
+                var ok = false
+                try {
+                    val o = JSONObject(value ?: "{}")
+                    form = o.optBoolean("form", true)
+                    ok = o.optBoolean("ok", false)
+                } catch (e: Exception) {
+                }
+                if (!form || ok) {
+                    marquerEnvoye()
+                } else {
+                    pendingSubmit = false
+                    afficherEtat(getString(R.string.st_notsent_title), getString(R.string.st_notsent_detail), StatusBadge.WARN)
+                    Motion.hapticNo(card)
+                }
+            }
+        })
+    }
+
+    private fun marquerEnvoye() {
+        pendingSubmit = false
+        sentCurrent = true
+        sentCount++
+        if (historyId == -1L) historyId = Store.ajouter(this, ami())
+        Store.marquerEnvoyee(this, historyId)
+        setResult(RESULT_OK)
+        Motion.hapticOk(card)
+        Motion.pop(card, 0.025f)
+        val dernier = index >= amis.size - 1
+        when {
+            !dernier -> afficherEtat(
+                getString(R.string.st_sent_title),
+                getString(R.string.st_sent_next, ami(), amis[index + 1]), StatusBadge.DONE
+            )
+            amis.size > 1 -> afficherEtat(
+                getString(R.string.st_all_title),
+                getString(R.string.st_all_detail, sentCount), StatusBadge.DONE
+            )
+            else -> afficherEtat(getString(R.string.st_sent_title), getString(R.string.st_sent_detail, ami()), StatusBadge.DONE)
+        }
+        majActions()
+    }
+
+    /** Passe à l'ami suivant (ou termine la série). */
+    private fun suivant() {
+        if (index >= amis.size - 1) {
+            finish()
+            return
+        }
+        index++
+        sentCurrent = false
+        pendingSubmit = false
+        historyId = -1L
+        celebrated = false
+        handler.removeCallbacks(verifRunnable)
+        majNav()
+        majActions()
+        Motion.hapticOk(nextButton)
+        afficherEtat(getString(R.string.st_loading_title), getString(R.string.st_loading_detail), StatusBadge.LOADING)
+        clearHistoryNext = true
+        web.loadUrl(FORM_URL)
+    }
+
+    // ---------- état affiché ----------
 
     /** Change la pastille et le message, avec un fondu enchaîné discret. */
     private fun afficherEtat(titre: String, detail: String, etat: Int) {
@@ -227,6 +408,7 @@ class FormActivity : Activity() {
     }
 
     private fun afficherResultat(json: String) {
+        if (sentCurrent || pendingSubmit || isDestroyed) return
         val res = try { JSONObject(json) } catch (e: Exception) { return }
         val champs = res.optJSONObject("fields") ?: JSONObject()
         val noms = linkedMapOf(
@@ -245,7 +427,10 @@ class FormActivity : Activity() {
             }
         }
         if (manquants.isEmpty()) {
-            afficherEtat(getString(R.string.st_done_title), getString(R.string.st_done_detail, friend), StatusBadge.DONE)
+            val detail = if (amis.size > 1) getString(R.string.st_done_detail_multi, ami(), index + 1, amis.size)
+            else getString(R.string.st_done_detail, ami())
+            afficherEtat(getString(R.string.st_done_title), detail, StatusBadge.DONE)
+            if (historyId == -1L) historyId = Store.ajouter(this, ami())
             if (!celebrated) {
                 celebrated = true
                 Motion.hapticOk(card)
@@ -261,16 +446,38 @@ class FormActivity : Activity() {
         }
     }
 
-    /** Secours si le reCAPTCHA ne s'affiche pas : copie le pseudo et ouvre le navigateur. */
-    private fun ouvrirDansNavigateur() {
+    // ---------- secours navigateur ----------
+
+    /** Kit de secours : ouvre le formulaire dans le navigateur et copie chaque info d'un geste. */
+    private fun kitNavigateur() {
+        val p = Prefs.lire(this)
+        val a = ami()
+        Sheet(this)
+            .title(getString(R.string.kit_title))
+            .message(getString(R.string.kit_message))
+            .add(getString(R.string.kit_open)) {
+                copier(a, false)
+                Toast.makeText(this, getString(R.string.toast_copied, a), Toast.LENGTH_SHORT).show()
+                try {
+                    startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(FORM_URL)))
+                } catch (e: ActivityNotFoundException) {
+                    Toast.makeText(this, R.string.no_browser, Toast.LENGTH_LONG).show()
+                }
+            }
+            .add(getString(R.string.kit_copy_friend, a)) { copier(a, true) }
+            .add(getString(R.string.kit_copy_user)) { copier(p.pseudo, true) }
+            .add(getString(R.string.kit_copy_email)) { copier(p.email, true) }
+            .add(getString(R.string.kit_copy_phone)) { copier(p.telephone, true) }
+            .add(getString(R.string.kit_copy_desc)) { copier(messageComplet(p), true) }
+            .show()
+    }
+
+    private fun copier(texte: String, toast: Boolean) {
         val cm = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-        cm.setPrimaryClip(ClipData.newPlainText("Pseudo de ton ami", friend))
-        Toast.makeText(this, getString(R.string.toast_copied, friend), Toast.LENGTH_LONG).show()
-        try {
-            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(FORM_URL)))
-        } catch (e: ActivityNotFoundException) {
-            Toast.makeText(this, R.string.no_browser, Toast.LENGTH_LONG).show()
-        }
+        cm.setPrimaryClip(ClipData.newPlainText("Flamme Snap", texte))
+        Motion.hapticOk(card)
+        // Android 13+ affiche déjà sa propre confirmation de copie.
+        if (toast && Build.VERSION.SDK_INT < 33) Toast.makeText(this, R.string.copied, Toast.LENGTH_SHORT).show()
     }
 
     @Deprecated("API Activity")
@@ -289,8 +496,11 @@ class FormActivity : Activity() {
     }
 
     override fun onDestroy() {
-        (web.parent as? ViewGroup)?.removeView(web)
-        web.destroy()
+        handler.removeCallbacksAndMessages(null)
+        if (::web.isInitialized) {
+            (web.parent as? ViewGroup)?.removeView(web)
+            web.destroy()
+        }
         super.onDestroy()
     }
 }

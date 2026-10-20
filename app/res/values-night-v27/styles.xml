@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="AppTheme" parent="Base.App">
+        <item name="android:navigationBarColor">@color/bg</item>
+        <item name="android:windowLightNavigationBar">false</item>
+    </style>
+
+    <style name="AppTheme.Grouped" parent="AppTheme">
+        <item name="android:statusBarColor">@color/grouped_bg</item>
+        <item name="android:windowBackground">@color/grouped_bg</item>
+        <item name="android:navigationBarColor">@color/grouped_bg</item>
+    </style>
+</resources>

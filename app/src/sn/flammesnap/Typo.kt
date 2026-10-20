@@ -32,6 +32,17 @@ object Typo {
     private fun load(am: AssetManager, path: String): Typeface? =
         try { Typeface.createFromAsset(am, path) } catch (e: Exception) { null }
 
+    /** Police par graisse (« display », « semibold », « medium », sinon regular). */
+    fun face(ctx: Context, kind: String): Typeface? {
+        init(ctx)
+        return when (kind) {
+            "display" -> display
+            "semibold" -> semibold
+            "medium" -> medium
+            else -> regular
+        }
+    }
+
     fun apply(root: View) {
         init(root.context)
         if (root is TextView) {

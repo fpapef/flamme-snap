@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Mode sombre : même thème, base sombre et icônes de barre d'état claires. -->
+    <style name="Base.App" parent="@android:style/Theme.Material.NoActionBar">
+        <item name="android:colorPrimary">@color/bg</item>
+        <item name="android:colorPrimaryDark">@color/bg</item>
+        <item name="android:colorAccent">@color/tint</item>
+        <item name="android:colorControlActivated">@color/tint</item>
+        <item name="android:textColorPrimary">@color/label</item>
+        <item name="android:textColorHighlight">#55FF6A2B</item>
+        <item name="android:statusBarColor">@color/bg</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowBackground">@color/bg</item>
+        <item name="android:windowAnimationStyle">@style/PushAnim</item>
+    </style>
+</resources>

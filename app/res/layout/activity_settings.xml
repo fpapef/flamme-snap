@@ -156,6 +156,14 @@
                 style="@style/SectionHeader"
                 android:text="@string/section_message" />
 
+            <sn.flammesnap.Segmented
+                android:id="@+id/lang_segmented"
+                android:layout_width="match_parent"
+                android:layout_height="32dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:layout_marginBottom="10dp" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -177,6 +185,48 @@
                     android:padding="16dp"
                     android:textColor="@color/label"
                     android:textCursorDrawable="@drawable/cursor"
+                    android:textSize="17sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:lineSpacingExtra="2dp"
+                android:paddingStart="32dp"
+                android:paddingEnd="32dp"
+                android:text="@string/lang_note"
+                android:textColor="@color/secondary"
+                android:textSize="13sp" />
+
+            <TextView
+                style="@style/SectionHeader"
+                android:text="@string/section_about" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/bg_group"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:paddingStart="16dp"
+                android:paddingEnd="16dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/version"
+                    android:textColor="@color/label"
+                    android:textSize="17sp" />
+
+                <TextView
+                    android:id="@+id/version_value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/secondary"
                     android:textSize="17sp" />
             </LinearLayout>
 

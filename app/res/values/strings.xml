@@ -2,16 +2,38 @@
 <resources>
     <string name="app_name">Flamme Snap</string>
 
+    <!-- Commun -->
+    <string name="back">Retour</string>
+    <string name="done">OK</string>
+    <string name="cancel">Annuler</string>
+    <string name="settings">Réglages</string>
+    <string name="history">Demandes</string>
+    <string name="copied">Copié</string>
+
     <!-- Accueil -->
     <string name="main_title">Ravive\nla flamme.</string>
     <string name="main_subtitle">Entre le pseudo de ton ami.\nOn s\'occupe du formulaire Snapchat.</string>
     <string name="friend_hint">Pseudo de ton ami</string>
     <string name="continue_btn">Continuer</string>
+    <string name="continue_n">Continuer (%1$d)</string>
     <string name="err_friend_empty">Entre d\'abord le pseudo de ton ami.</string>
-    <string name="profile_summary">Envoyé au nom de %1$s</string>
-    <string name="settings">Réglages</string>
-    <string name="back">Retour</string>
-    <string name="done">OK</string>
+    <string name="multi_hint">%1$d amis · une demande chacun, à la suite</string>
+    <string name="invalid_hint">« %1$s » ne ressemble pas à un pseudo Snapchat.</string>
+    <string name="paste">Coller</string>
+    <string name="nothing_to_paste">Aucun pseudo à coller.</string>
+    <string name="share_none">Aucun pseudo trouvé dans ce partage.</string>
+    <string name="recents">Récents</string>
+    <string name="remove_recent">Retirer des récents</string>
+    <string name="details_toggle">Détails facultatifs</string>
+    <string name="days_hint">Durée de la flamme, en jours</string>
+    <string name="lost">Disparue</string>
+    <string name="lost_today">Aujourd\'hui</string>
+    <string name="lost_yesterday">Hier</string>
+    <string name="lost_before">Avant-hier</string>
+    <string name="details_note">Ajouté à la fin du message envoyé à Snapchat.</string>
+    <string name="profile_summary">Au nom de %1$s</string>
+    <string name="summary_sent_one">" · 1 demande envoyée"</string>
+    <string name="summary_sent_many">" · %1$d demandes envoyées"</string>
 
     <!-- Réglages -->
     <string name="section_account">Ton compte</string>
@@ -22,25 +44,65 @@
     <string name="hint_username">Ton pseudo Snapchat</string>
     <string name="hint_email">adresse@exemple.com</string>
     <string name="hint_phone">+221 …</string>
+    <string name="lang_fr">Français</string>
+    <string name="lang_en">English</string>
+    <string name="lang_note">Chaque langue garde son propre message. Les détails facultatifs sont ajoutés dans la même langue.</string>
     <string name="settings_note">Les modifications sont enregistrées automatiquement et restent uniquement sur ton téléphone.</string>
+    <string name="section_about">À propos</string>
+    <string name="version">Version</string>
+
+    <!-- Demandes -->
+    <string name="hist_empty">Aucune demande pour l\'instant.</string>
+    <string name="hist_empty_detail">Tes demandes de restauration apparaîtront ici.</string>
+    <string name="today">Aujourd\'hui</string>
+    <string name="yesterday">Hier</string>
+    <string name="sent_at">Envoyée à %1$s</string>
+    <string name="filled_at">Remplie à %1$s · envoi non confirmé</string>
+    <string name="hist_summary">%1$d envoyée(s) · %2$d non confirmée(s)</string>
+    <string name="redo">Refaire une demande</string>
+    <string name="mark_sent">Marquer comme envoyée</string>
+    <string name="delete">Supprimer</string>
+    <string name="clear_history">Effacer l\'historique</string>
+    <string name="clear_confirm">L\'historique sera effacé de ce téléphone.</string>
 
     <!-- Formulaire -->
     <string name="form_title">Formulaire</string>
+    <string name="nav_count">%1$d sur %2$d</string>
     <string name="st_loading_title">Chargement…</string>
     <string name="st_loading_detail">Formulaire officiel de Snapchat</string>
     <string name="st_filling_title">Remplissage…</string>
     <string name="st_filling_detail">Tes infos sont ajoutées automatiquement.</string>
     <string name="st_done_title">Formulaire rempli</string>
     <string name="st_done_detail">Pour %1$s. Coche le reCAPTCHA, puis touche Envoyer.</string>
+    <string name="st_done_detail_multi">Pour %1$s (%2$d sur %3$d). Coche le reCAPTCHA, puis touche Envoyer.</string>
     <string name="st_partial_title">Presque terminé</string>
     <string name="st_partial_detail">À compléter : %1$s.</string>
     <string name="st_error_title">Pas de connexion</string>
     <string name="st_error_detail">Vérifie ta connexion, puis réessaie.</string>
+    <string name="st_sending_title">Envoi…</string>
+    <string name="st_sending_detail">Vérification de l\'envoi.</string>
+    <string name="st_sent_title">Demande envoyée</string>
+    <string name="st_sent_detail">Pour %1$s. Snapchat te répondra par e-mail.</string>
+    <string name="st_sent_next">Pour %1$s. Ensuite : %2$s.</string>
+    <string name="st_all_title">Tout est envoyé</string>
+    <string name="st_all_detail">%1$d demandes envoyées. Snapchat te répondra par e-mail.</string>
+    <string name="st_notsent_title">Pas encore envoyé</string>
+    <string name="st_notsent_detail">Coche le reCAPTCHA, puis touche Envoyer.</string>
     <string name="refill">Remplir à nouveau</string>
     <string name="open_browser">Navigateur</string>
     <string name="open_browser_desc">Ouvrir dans le navigateur</string>
-    <string name="toast_copied">Pseudo « %1$s » copié. Colle-le dans le champ de ton ami.</string>
+    <string name="next_friend">Ami suivant : %1$s</string>
+    <string name="finish">Terminer</string>
     <string name="no_browser">Aucun navigateur trouvé sur le téléphone.</string>
+    <string name="kit_title">Ouvrir dans le navigateur</string>
+    <string name="kit_message">Touche une ligne pour la copier, puis colle-la dans le formulaire.</string>
+    <string name="kit_open">Ouvrir le formulaire</string>
+    <string name="kit_copy_friend">Copier « %1$s » (ton ami)</string>
+    <string name="kit_copy_user">Copier mon pseudo</string>
+    <string name="kit_copy_email">Copier mon e-mail</string>
+    <string name="kit_copy_phone">Copier mon numéro</string>
+    <string name="kit_copy_desc">Copier le message</string>
+    <string name="toast_copied">Pseudo « %1$s » copié.</string>
 
     <!-- Noms des champs (messages d'état) -->
     <string name="f_email">e-mail</string>

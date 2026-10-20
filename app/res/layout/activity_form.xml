@@ -50,6 +50,7 @@
         android:layout_marginTop="12dp"
         android:layout_marginEnd="16dp"
         android:layout_marginBottom="12dp"
+        android:animateLayoutChanges="true"
         android:background="@drawable/bg_card"
         android:orientation="vertical"
         android:paddingStart="16dp"
@@ -101,8 +102,7 @@
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="36dp"
-            android:layout_marginTop="2dp"
+            android:layout_marginTop="4dp"
             android:orientation="horizontal">
 
             <TextView
@@ -121,6 +121,14 @@
                 android:tag="medium"
                 android:text="@string/open_browser" />
         </LinearLayout>
+
+        <!-- Série : ami suivant / terminer -->
+        <TextView
+            android:id="@+id/next_button"
+            style="@style/TextAction"
+            android:layout_marginTop="-4dp"
+            android:tag="semibold"
+            android:visibility="gone" />
     </LinearLayout>
 
     <WebView

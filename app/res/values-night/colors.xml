@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Mode sombre façon iOS -->
+    <color name="label">#F5F5F7</color>
+    <color name="secondary">#98989D</color>
+    <color name="tertiary">#636366</color>
+    <color name="bg">#000000</color>
+    <color name="grouped_bg">#000000</color>
+    <color name="cell">#1C1C1E</color>
+    <color name="fill">#1C1C1E</color>
+    <color name="separator">#38383A</color>
+    <color name="tint">#FF6A2B</color>
+    <color name="red">#FF453A</color>
+    <color name="green">#30D158</color>
+    <color name="orange">#FF9F0A</color>
+    <color name="on_button">#000000</color>
+    <color name="button_pressed">#C7C7CC</color>
+    <color name="row_pressed">#2C2C2E</color>
+    <color name="segment_track">#1C1C1E</color>
+    <color name="segment_thumb">#636366</color>
+</resources>

@@ -1,5 +1,16 @@
 # Journal des versions
 
+## 1.3 — 20 octobre 2026
+
+- Plusieurs amis d'un coup (espaces ou virgules) : une demande par ami, à la suite, avec « Ami suivant ».
+- Détection de l'envoi : l'appli repère quand ta demande est partie.
+- Historique « Demandes » classé par jour (envoyées ou non confirmées) : refaire, marquer comme envoyée, supprimer.
+- Amis récents en pastilles, partage d'un profil depuis Snapchat vers l'appli, bouton « Coller ».
+- Détails facultatifs : durée de la flamme et jour de disparition ajoutés au message.
+- Message en français ou en anglais.
+- Mode sombre automatique.
+- Kit navigateur : chaque info se copie d'un geste.
+
 ## 1.2 — 20 octobre 2026
 
 - Nouveau design épuré façon Apple : blanc pur, noir doux et une seule couleur, celle de la flamme.
