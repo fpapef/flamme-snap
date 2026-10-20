@@ -1,13 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="18dp"
-    android:height="18dp"
+    android:width="24dp"
+    android:height="24dp"
     android:viewportWidth="24"
     android:viewportHeight="24">
+    <!-- Trois réglettes, trait fin -->
     <path
-        android:fillColor="@color/ink"
-        android:pathData="M4,6.25h16v1.5h-16z M4,11.25h16v1.5h-16z M4,16.25h16v1.5h-16z" />
+        android:pathData="M3.5,7 H20.5 M3.5,12 H20.5 M3.5,17 H20.5"
+        android:strokeWidth="1.6"
+        android:strokeColor="@color/label"
+        android:strokeLineCap="round" />
     <path
-        android:fillColor="@color/ink"
-        android:pathData="M6.5,7a2.5,2.5 0 1,0 5,0a2.5,2.5 0 1,0 -5,0z M12.5,12a2.5,2.5 0 1,0 5,0a2.5,2.5 0 1,0 -5,0z M5.5,17a2.5,2.5 0 1,0 5,0a2.5,2.5 0 1,0 -5,0z" />
+        android:fillColor="@color/bg"
+        android:strokeWidth="1.6"
+        android:strokeColor="@color/label"
+        android:pathData="M6.6,7a2.4,2.4 0 1,0 4.8,0a2.4,2.4 0 1,0 -4.8,0z M12.6,12a2.4,2.4 0 1,0 4.8,0a2.4,2.4 0 1,0 -4.8,0z M5.6,17a2.4,2.4 0 1,0 4.8,0a2.4,2.4 0 1,0 -4.8,0z" />
 </vector>

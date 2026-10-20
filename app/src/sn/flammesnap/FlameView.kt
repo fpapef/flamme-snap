@@ -38,8 +38,8 @@ class FlameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
     private val emberPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val rnd = Random()
 
-    private val emberHot = Motion.col("#FFD24D")
-    private val emberCold = Motion.col("#FF4A1F")
+    private val emberHot = Motion.col("#FFC53D")
+    private val emberCold = Motion.col("#FF6A1F")
 
     private var t = 0f
     private var lastMs = 0L
@@ -80,40 +80,40 @@ class FlameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         val top = by - unit * 0.8f
         outerPaint.shader = LinearGradient(
             0f, top, 0f, by,
-            intArrayOf(Motion.col("#FF9A1F"), Motion.col("#FF5A1F"), Motion.col("#FF3B1F")),
+            intArrayOf(Motion.col("#FF9F0A"), Motion.col("#FF6A1F"), Motion.col("#FF3B30")),
             floatArrayOf(0f, 0.55f, 1f), Shader.TileMode.CLAMP
         )
         midPaint.shader = LinearGradient(
             0f, top + unit * 0.2f, 0f, by,
-            Motion.col("#FFC23A"), Motion.col("#FF8A1F"), Shader.TileMode.CLAMP
+            Motion.col("#FFC53D"), Motion.col("#FF8A00"), Shader.TileMode.CLAMP
         )
         corePaint.shader = LinearGradient(
             0f, by - unit * 0.4f, 0f, by,
-            Motion.col("#FFE987"), Motion.col("#FFFBE6"), Shader.TileMode.CLAMP
+            Motion.col("#FFE7A3"), Motion.col("#FFF8E7"), Shader.TileMode.CLAMP
         )
         glowR = unit * 0.62f
         glowPaint.shader = RadialGradient(
             0f, 0f, glowR,
-            intArrayOf(Motion.col("#99FFE14D"), Motion.col("#40FFC93C"), Motion.col("#00FFC93C")),
+            intArrayOf(Motion.col("#38FFB340"), Motion.col("#14FFB340"), Motion.col("#00FFB340")),
             floatArrayOf(0f, 0.5f, 1f), Shader.TileMode.CLAMP
         )
         bedR = unit * 0.34f
         bedPaint.shader = RadialGradient(
-            0f, 0f, bedR, Motion.col("#66FF6A1F"), Motion.col("#00FF6A1F"), Shader.TileMode.CLAMP
+            0f, 0f, bedR, Motion.col("#26FF6A1F"), Motion.col("#00FF6A1F"), Shader.TileMode.CLAMP
         )
         ready = true
     }
 
     /** Petit sursaut (une lettre tapée). */
     fun kick() {
-        energy = min(energy + 0.16f, 0.8f)
-        burst(3, 0.8f)
+        energy = min(energy + 0.14f, 0.7f)
+        burst(2, 0.8f)
     }
 
     /** Grand coup de feu (on valide). */
     fun boost() {
-        energy = 1.1f
-        burst(30, 1.7f)
+        energy = 1.0f
+        burst(18, 1.5f)
     }
 
     /** La flamme se recroqueville (erreur). */
@@ -139,7 +139,7 @@ class FlameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
             grow = va.animatedValue as Float
             if (!igniteBurstDone && grow > 0.7f) {
                 igniteBurstDone = true
-                burst(16, 1.3f)
+                burst(8, 1.2f)
             }
             invalidate()
         }
@@ -249,12 +249,12 @@ class FlameView(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         vy[i] = -unit * (0.28f + rnd.nextFloat() * 0.35f) * speedMul
         maxLife[i] = 0.7f + rnd.nextFloat() * 0.9f
         life[i] = maxLife[i]
-        size[i] = unit * (0.008f + rnd.nextFloat() * 0.012f)
+        size[i] = unit * (0.006f + rnd.nextFloat() * 0.009f)
     }
 
     private fun updateEmbers(dt: Float, inten: Float) {
         if (grow > 0.6f) {
-            spawnAcc += dt * (5f + 9f * max(0f, energy)) * inten
+            spawnAcc += dt * (2.2f + 8f * max(0f, energy)) * inten
             while (spawnAcc >= 1f) {
                 spawn(1f)
                 spawnAcc -= 1f

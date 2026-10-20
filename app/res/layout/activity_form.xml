@@ -1,85 +1,131 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical">
 
-    <LinearLayout
+    <!-- Barre de navigation façon iOS -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:layout_height="52dp">
 
-        <!-- Carte d'état -->
-        <LinearLayout
-            android:id="@+id/status_card"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="10dp"
-            android:layout_marginTop="10dp"
-            android:layout_marginEnd="10dp"
-            android:layout_marginBottom="8dp"
-            android:orientation="vertical"
-            android:paddingStart="14dp"
-            android:paddingTop="12dp"
+        <TextView
+            android:id="@+id/back_button"
+            style="@style/TextAction"
+            android:layout_gravity="start|center_vertical"
+            android:drawableStart="@drawable/ic_chevron_left"
+            android:drawablePadding="6dp"
+            android:paddingStart="12dp"
             android:paddingEnd="12dp"
-            android:paddingBottom="12dp">
+            android:text="@string/back"
+            android:textSize="17sp" />
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:gravity="center_vertical"
-                android:orientation="horizontal">
+        <TextView
+            android:id="@+id/nav_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:tag="semibold"
+            android:text="@string/form_title"
+            android:textColor="@color/label"
+            android:textSize="17sp" />
 
-                <sn.flammesnap.StatusBadge
-                    android:id="@+id/badge"
-                    android:layout_width="26dp"
-                    android:layout_height="26dp" />
-
-                <TextView
-                    android:id="@+id/status"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_weight="1"
-                    android:lineSpacingExtra="2dp"
-                    android:text="@string/status_loading"
-                    android:textColor="@color/ink"
-                    android:textSize="14sp" />
-            </LinearLayout>
-
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="10dp"
-                android:orientation="horizontal">
-
-                <Button
-                    android:id="@+id/refill_button"
-                    style="@style/BarButton"
-                    android:layout_marginEnd="8dp"
-                    android:text="@string/refill" />
-
-                <Button
-                    android:id="@+id/browser_button"
-                    style="@style/BarButton"
-                    android:text="@string/open_browser" />
-            </LinearLayout>
-        </LinearLayout>
+        <View
+            style="@style/Hairline"
+            android:layout_gravity="bottom" />
 
         <sn.flammesnap.GlowProgress
             android:id="@+id/progress"
             android:layout_width="match_parent"
-            android:layout_height="3dp" />
+            android:layout_height="2dp"
+            android:layout_gravity="bottom" />
+    </FrameLayout>
 
-        <WebView
-            android:id="@+id/web"
+    <!-- Carte d'état -->
+    <LinearLayout
+        android:id="@+id/status_card"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="12dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="12dp"
+        android:background="@drawable/bg_card"
+        android:orientation="vertical"
+        android:paddingStart="16dp"
+        android:paddingTop="14dp"
+        android:paddingEnd="16dp"
+        android:paddingBottom="4dp">
+
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <sn.flammesnap.StatusBadge
+                android:id="@+id/badge"
+                android:layout_width="24dp"
+                android:layout_height="24dp" />
+
+            <LinearLayout
+                android:id="@+id/status_texts"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="12dp"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/status_title"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:letterSpacing="-0.01"
+                    android:tag="semibold"
+                    android:text="@string/st_loading_title"
+                    android:textColor="@color/label"
+                    android:textSize="15sp" />
+
+                <TextView
+                    android:id="@+id/status_detail"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:lineSpacingExtra="1dp"
+                    android:text="@string/st_loading_detail"
+                    android:textColor="@color/secondary"
+                    android:textSize="13sp" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="36dp"
+            android:layout_marginTop="2dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:id="@+id/refill_button"
+                style="@style/TextAction"
+                android:tag="medium"
+                android:text="@string/refill" />
+
+            <TextView
+                android:id="@+id/browser_button"
+                style="@style/TextAction"
+                android:layout_marginStart="22dp"
+                android:contentDescription="@string/open_browser_desc"
+                android:drawableEnd="@drawable/ic_external"
+                android:drawablePadding="4dp"
+                android:tag="medium"
+                android:text="@string/open_browser" />
+        </LinearLayout>
     </LinearLayout>
 
-    <!-- Confettis par-dessus tout (laisse passer les touches) -->
-    <sn.flammesnap.ConfettiView
-        android:id="@+id/confetti"
+    <WebView
+        android:id="@+id/web"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
-</FrameLayout>
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+</LinearLayout>

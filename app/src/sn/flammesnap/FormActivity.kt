@@ -1,6 +1,5 @@
 package sn.flammesnap
 
-import android.animation.ValueAnimator
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ActivityNotFoundException
@@ -8,13 +7,10 @@ import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
-import android.graphics.drawable.GradientDrawable
 import android.net.Uri
 import android.os.Bundle
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.view.animation.DecelerateInterpolator
 import android.webkit.CookieManager
 import android.webkit.JavascriptInterface
 import android.webkit.ValueCallback
@@ -24,7 +20,6 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebSettings
 import android.webkit.WebView
 import android.webkit.WebViewClient
-import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import org.json.JSONObject
@@ -44,14 +39,12 @@ class FormActivity : Activity() {
     }
 
     private lateinit var web: WebView
-    private lateinit var status: TextView
+    private lateinit var statusTitle: TextView
+    private lateinit var statusDetail: TextView
+    private lateinit var statusTexts: View
     private lateinit var badge: StatusBadge
     private lateinit var card: View
     private lateinit var progress: GlowProgress
-    private lateinit var confetti: ConfettiView
-    private val cardBg = GradientDrawable()
-    private var cardColor = 0
-    private var cardAnim: ValueAnimator? = null
 
     private var friend = ""
     private var fillScript = ""
@@ -60,47 +53,36 @@ class FormActivity : Activity() {
     private var webShown = false
     private var fileCallback: ValueCallback<Array<Uri>>? = null
 
-    private val colLoading = Motion.col("#FFFBD1")
-    private val colFilling = Motion.col("#FFF3C4")
-    private val colDone = Motion.col("#E3F6E8")
-    private val colWarn = Motion.col("#FFEBDA")
-    private val colError = Motion.col("#FDE4E4")
-
     @SuppressLint("SetJavaScriptEnabled", "AddJavascriptInterface")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_form)
-        title = getString(R.string.form_title)
-        actionBar?.setDisplayHomeAsUpEnabled(true)
+        Typo.apply(window.decorView)
 
         friend = intent.getStringExtra(EXTRA_FRIEND) ?: ""
         fillScript = assets.open("fill.js").bufferedReader(Charsets.UTF_8).use { it.readText() }
 
         web = findViewById(R.id.web)
-        status = findViewById(R.id.status)
+        statusTitle = findViewById(R.id.status_title)
+        statusDetail = findViewById(R.id.status_detail)
+        statusTexts = findViewById(R.id.status_texts)
         badge = findViewById(R.id.badge)
         card = findViewById(R.id.status_card)
         progress = findViewById(R.id.progress)
-        confetti = findViewById(R.id.confetti)
 
-        cardBg.cornerRadius = Motion.dp(card, 18f)
-        cardColor = colLoading
-        cardBg.setColor(cardColor)
-        card.background = cardBg
-
-        val refill = findViewById<Button>(R.id.refill_button)
-        val browser = findViewById<Button>(R.id.browser_button)
+        val back = findViewById<View>(R.id.back_button)
+        val refill = findViewById<View>(R.id.refill_button)
+        val browser = findViewById<View>(R.id.browser_button)
+        back.setOnClickListener { finish() }
         refill.setOnClickListener { remplirANouveau() }
         browser.setOnClickListener { ouvrirDansNavigateur() }
-        Motion.pressable(refill)
-        Motion.pressable(browser)
+        Motion.highlight(back)
+        Motion.highlight(refill)
+        Motion.highlight(browser)
 
-        // Entrée : la carte d'état glisse depuis le haut, la page apparaît en fondu.
+        // Entrée : la carte d'état se dépose en douceur, la page apparaît en fondu.
         if (Motion.animationsOn()) {
-            card.alpha = 0f
-            card.translationY = -Motion.dp(card, 18f)
-            card.animate().alpha(1f).translationY(0f).setStartDelay(140).setDuration(520)
-                .setInterpolator(Motion.EMPHASIZED).start()
+            Motion.reveal(listOf(card), 180, 0, 10f, 0f)
             web.alpha = 0f
             web.postDelayed({ montrerPage() }, 6000)
         }
@@ -149,7 +131,7 @@ class FormActivity : Activity() {
                 if (request.isForMainFrame) {
                     loadFailed = true
                     montrerPage()
-                    afficherEtat(getString(R.string.status_load_error), StatusBadge.ERROR)
+                    afficherEtat(getString(R.string.st_error_title), getString(R.string.st_error_detail), StatusBadge.ERROR)
                 }
             }
         }
@@ -178,14 +160,14 @@ class FormActivity : Activity() {
             }
         }
 
-        afficherEtat(getString(R.string.status_loading), StatusBadge.LOADING)
+        afficherEtat(getString(R.string.st_loading_title), getString(R.string.st_loading_detail), StatusBadge.LOADING)
         web.loadUrl(FORM_URL)
     }
 
     private fun montrerPage() {
         if (webShown || isDestroyed) return
         webShown = true
-        web.animate().alpha(1f).setDuration(450).setInterpolator(DecelerateInterpolator()).start()
+        web.animate().alpha(1f).setDuration(500).setInterpolator(Motion.IOS).start()
     }
 
     private fun estLeFormulaire(url: String?): Boolean =
@@ -201,53 +183,38 @@ class FormActivity : Activity() {
         cfg.put("description", p.description)
         cfg.put("friend", friend)
         celebrated = false
-        afficherEtat(getString(R.string.status_filling), StatusBadge.FILLING)
+        afficherEtat(getString(R.string.st_filling_title), getString(R.string.st_filling_detail), StatusBadge.FILLING)
         web.evaluateJavascript("window.__snapFillCfg = $cfg;\n$fillScript", null)
     }
 
     private fun remplirANouveau() {
         if (loadFailed || !estLeFormulaire(web.url)) {
-            afficherEtat(getString(R.string.status_loading), StatusBadge.LOADING)
+            afficherEtat(getString(R.string.st_loading_title), getString(R.string.st_loading_detail), StatusBadge.LOADING)
             web.loadUrl(FORM_URL)
         } else {
             injecter()
         }
     }
 
-    /** Change le message, la pastille et la couleur de la carte, en douceur. */
-    private fun afficherEtat(texte: CharSequence, etat: Int) {
+    /** Change la pastille et le message, avec un fondu enchaîné discret. */
+    private fun afficherEtat(titre: String, detail: String, etat: Int) {
         badge.show(etat)
-        val cible = when (etat) {
-            StatusBadge.DONE -> colDone
-            StatusBadge.WARN -> colWarn
-            StatusBadge.ERROR -> colError
-            StatusBadge.FILLING -> colFilling
-            else -> colLoading
-        }
-        if (cible != cardColor) {
-            cardAnim?.cancel()
-            val a = ValueAnimator.ofArgb(cardColor, cible)
-            a.duration = 450
-            a.addUpdateListener { va ->
-                cardColor = va.animatedValue as Int
-                cardBg.setColor(cardColor)
-            }
-            a.start()
-            cardAnim = a
-        }
-        if (status.text.toString() == texte.toString()) return
+        if (statusTitle.text.toString() == titre && statusDetail.text.toString() == detail) return
         if (!Motion.animationsOn()) {
-            status.text = texte
+            statusTitle.text = titre
+            statusDetail.text = detail
             return
         }
-        val d = Motion.dp(status, 1f)
-        status.animate().cancel()
-        status.animate().alpha(0f).translationY(-6 * d).setStartDelay(0).setDuration(130)
+        val d = Motion.dp(statusTexts, 1f)
+        statusTexts.animate().cancel()
+        statusTexts.animate().alpha(0f).translationY(-4 * d).setStartDelay(0).setDuration(140)
+            .setInterpolator(Motion.IOS)
             .withEndAction {
-                status.text = texte
-                status.translationY = 8 * d
-                status.animate().alpha(1f).translationY(0f).setDuration(320)
-                    .setInterpolator(Motion.EMPHASIZED).start()
+                statusTitle.text = titre
+                statusDetail.text = detail
+                statusTexts.translationY = 6 * d
+                statusTexts.animate().alpha(1f).translationY(0f).setDuration(420)
+                    .setInterpolator(Motion.IOS).start()
             }.start()
     }
 
@@ -278,28 +245,20 @@ class FormActivity : Activity() {
             }
         }
         if (manquants.isEmpty()) {
-            afficherEtat(getString(R.string.status_done, friend), StatusBadge.DONE)
-            celebrer()
+            afficherEtat(getString(R.string.st_done_title), getString(R.string.st_done_detail, friend), StatusBadge.DONE)
+            if (!celebrated) {
+                celebrated = true
+                Motion.hapticOk(card)
+                Motion.pop(card, 0.025f)
+            }
         } else {
-            afficherEtat(getString(R.string.status_partial, manquants.joinToString(", ")), StatusBadge.WARN)
-            Motion.shake(card)
+            afficherEtat(
+                getString(R.string.st_partial_title),
+                getString(R.string.st_partial_detail, manquants.joinToString(", ")),
+                StatusBadge.WARN
+            )
             Motion.hapticNo(card)
         }
-    }
-
-    /** Petite fête quand tout est rempli. */
-    private fun celebrer() {
-        if (celebrated) return
-        celebrated = true
-        Motion.hapticOk(card)
-        Motion.pop(card, 0.03f)
-        val c = IntArray(2)
-        val k = IntArray(2)
-        card.getLocationInWindow(c)
-        confetti.getLocationInWindow(k)
-        val ox = c[0] - k[0] + card.width / 2f
-        val oy = c[1] - k[1] + card.height.toFloat()
-        confetti.burst(ox, oy, 120)
     }
 
     /** Secours si le reCAPTCHA ne s'affiche pas : copie le pseudo et ouvre le navigateur. */
@@ -324,21 +283,12 @@ class FormActivity : Activity() {
         super.onActivityResult(requestCode, resultCode, data)
     }
 
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) {
-            finish()
-            return true
-        }
-        return super.onOptionsItemSelected(item)
-    }
-
     @Deprecated("API Activity")
     override fun onBackPressed() {
         if (web.canGoBack()) web.goBack() else super.onBackPressed()
     }
 
     override fun onDestroy() {
-        cardAnim?.cancel()
         (web.parent as? ViewGroup)?.removeView(web)
         web.destroy()
         super.onDestroy()

@@ -1,5 +1,14 @@
 # Journal des versions
 
+## 1.2 — 20 octobre 2026
+
+- Nouveau design épuré façon Apple : blanc pur, noir doux et une seule couleur, celle de la flamme.
+- Police Inter intégrée, grands titres serrés comme sur iPhone.
+- Accueil : grand titre « Ravive la flamme. », flamme plus discrète, réglages en icône.
+- Formulaire : barre « ‹ Retour », carte d'état grise, indicateur d'activité façon iOS puis coche verte.
+- Réglages façon app Réglages de l'iPhone : listes groupées, grand titre qui se replie, enregistrement automatique.
+- Transitions « push » façon iPhone, boutons à ressort, apparition avec flou (Android 12+).
+
 ## 1.1 — 20 octobre 2026
 
 - Flamme animée dessinée à la main : elle vacille, lance des braises, sursaute quand tu tapes, s'embrase quand tu continues et se recroqueville si le champ est vide.

@@ -6,18 +6,15 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Path
 import android.graphics.PathMeasure
-import android.graphics.RectF
 import android.os.SystemClock
 import android.util.AttributeSet
 import android.view.View
 import android.view.animation.LinearInterpolator
-import android.view.animation.OvershootInterpolator
 import kotlin.math.min
-import kotlin.math.sin
 
 /**
- * Pastille d'état animée : arc qui tourne (chargement / remplissage),
- * coche qui se dessine (réussi), point d'exclamation (à compléter / erreur).
+ * Pastille d'état façon iOS : indicateur d'activité à 8 branches,
+ * coche verte qui se dessine, point d'exclamation orange ou rouge.
  */
 class StatusBadge(context: Context, attrs: AttributeSet?) : View(context, attrs) {
 
@@ -37,35 +34,37 @@ class StatusBadge(context: Context, attrs: AttributeSet?) : View(context, attrs)
     private var enter = 1f
     private var animator: ValueAnimator? = null
     private val start = SystemClock.uptimeMillis()
-    private val pop = OvershootInterpolator(2.2f)
 
-    private val arcPaint = Paint(Paint.ANTI_ALIAS_FLAG)
+    private val spokePaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val fillPaint = Paint(Paint.ANTI_ALIAS_FLAG)
     private val markPaint = Paint(Paint.ANTI_ALIAS_FLAG)
-    private val oval = RectF()
     private val check = Path()
     private val seg = Path()
     private val pm = PathMeasure()
 
-    private val ink = Motion.col("#111111")
-    private val orange = Motion.col("#FF6A1F")
-    private val green = Motion.col("#16A34A")
-    private val amber = Motion.col("#F97316")
-    private val red = Motion.col("#DC2626")
+    private val gray = Motion.col("#8E8E93")
+    private val green = Motion.col("#34C759")
+    private val orange = Motion.col("#FF9F0A")
+    private val red = Motion.col("#FF3B30")
+    private val white = Motion.col("#FFFFFF")
 
     init {
-        arcPaint.style = Paint.Style.STROKE
-        arcPaint.strokeCap = Paint.Cap.ROUND
+        spokePaint.style = Paint.Style.STROKE
+        spokePaint.strokeCap = Paint.Cap.ROUND
+        spokePaint.color = gray
         markPaint.style = Paint.Style.STROKE
         markPaint.strokeCap = Paint.Cap.ROUND
         markPaint.strokeJoin = Paint.Join.ROUND
-        markPaint.color = 0xFFFFFFFF.toInt()
+        markPaint.color = white
     }
 
     fun show(s: Int) {
         if (s == state) return
+        val wasSpinner = state == LOADING || state == FILLING
+        val isSpinner = s == LOADING || s == FILLING
         state = s
         animator?.cancel()
+        if (wasSpinner && isSpinner) return // même indicateur, on ne relance rien
         if (!Motion.animationsOn()) {
             enter = 1f
             invalidate()
@@ -73,7 +72,7 @@ class StatusBadge(context: Context, attrs: AttributeSet?) : View(context, attrs)
         }
         enter = 0f
         val a = ValueAnimator.ofFloat(0f, 1f)
-        a.duration = 700
+        a.duration = 750
         a.interpolator = LinearInterpolator()
         a.addUpdateListener { va ->
             enter = va.animatedValue as Float
@@ -87,15 +86,13 @@ class StatusBadge(context: Context, attrs: AttributeSet?) : View(context, attrs)
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         val s = min(w, h).toFloat()
-        val stroke = s * 0.11f
-        arcPaint.strokeWidth = stroke
-        markPaint.strokeWidth = s * 0.12f
+        spokePaint.strokeWidth = s * 0.095f
+        markPaint.strokeWidth = s * 0.11f
         val l = (w - s) / 2f
         val t = (h - s) / 2f
-        oval.set(l + stroke, t + stroke, l + s - stroke, t + s - stroke)
         check.reset()
         check.moveTo(l + s * 0.29f, t + s * 0.52f)
-        check.lineTo(l + s * 0.44f, t + s * 0.67f)
+        check.lineTo(l + s * 0.44f, t + s * 0.66f)
         check.lineTo(l + s * 0.72f, t + s * 0.37f)
     }
 
@@ -105,47 +102,46 @@ class StatusBadge(context: Context, attrs: AttributeSet?) : View(context, attrs)
         val cx = width / 2f
         val cy = height / 2f
         val r = min(width, height) / 2f
-        when (state) {
-            LOADING, FILLING -> {
-                val sec = (SystemClock.uptimeMillis() - start) / 1000f
-                val rot = (sec * 320f) % 360f
-                val sweep = 60f + 200f * (0.5f + 0.5f * sin(sec * 3.4f))
-                arcPaint.color = if (state == FILLING) orange else ink
-                arcPaint.alpha = (255f * Motion.clamp01(0.3f + enter)).toInt()
-                canvas.drawArc(oval, rot, sweep, false, arcPaint)
-                if (state == FILLING) {
-                    fillPaint.color = orange
-                    canvas.drawCircle(cx, cy, r * 0.22f * (0.85f + 0.15f * sin(sec * 9f)), fillPaint)
-                }
-                if (Motion.animationsOn() && isAttachedToWindow && windowVisibility == VISIBLE) {
-                    postInvalidateOnAnimation()
-                }
+        if (state == LOADING || state == FILLING) {
+            // Indicateur d'activité : la branche « de tête » tourne par crans.
+            val sec = (SystemClock.uptimeMillis() - start) / 1000f
+            val step = (sec / 0.1f).toInt() % 8
+            for (i in 0 until 8) {
+                val age = (step - i + 8) % 8
+                spokePaint.alpha = (255f * (1f - age / 8f * 0.85f)).toInt()
+                canvas.save()
+                canvas.rotate(i * 45f, cx, cy)
+                canvas.drawLine(cx, cy - r * 0.48f, cx, cy - r * 0.9f, spokePaint)
+                canvas.restore()
             }
-            else -> {
-                val s = pop.getInterpolation(Motion.clamp01(enter / 0.55f))
-                fillPaint.color = when (state) {
-                    DONE -> green
-                    WARN -> amber
-                    else -> red
-                }
-                canvas.drawCircle(cx, cy, r * s, fillPaint)
-                val m = Motion.clamp01((enter - 0.3f) / 0.6f)
-                if (m <= 0f) return
-                if (state == DONE) {
-                    pm.setPath(check, false)
-                    seg.reset()
-                    pm.getSegment(0f, pm.length * m, seg, true)
-                    canvas.drawPath(seg, markPaint)
-                } else {
-                    val top = cy - r * 0.42f
-                    val bottom = cy + r * 0.12f
-                    canvas.drawLine(cx, top, cx, top + (bottom - top) * m, markPaint)
-                    if (m > 0.85f) {
-                        val dotPaintW = markPaint.strokeWidth
-                        fillPaint.color = 0xFFFFFFFF.toInt()
-                        canvas.drawCircle(cx, cy + r * 0.42f, dotPaintW * 0.6f, fillPaint)
-                    }
-                }
+            if (isAttachedToWindow && windowVisibility == VISIBLE) {
+                // Un cran tous les 100 ms : on ne redessine qu'au cran suivant.
+                val ms = (SystemClock.uptimeMillis() - start) % 100L
+                postInvalidateDelayed(100L - ms)
+            }
+            return
+        }
+        val s = Motion.SPRING.getInterpolation(Motion.clamp01(enter / 0.6f))
+        fillPaint.color = when (state) {
+            DONE -> green
+            WARN -> orange
+            else -> red
+        }
+        canvas.drawCircle(cx, cy, r * s, fillPaint)
+        val m = Motion.clamp01((enter - 0.32f) / 0.55f)
+        if (m <= 0f) return
+        if (state == DONE) {
+            pm.setPath(check, false)
+            seg.reset()
+            pm.getSegment(0f, pm.length * Motion.IOS.getInterpolation(m), seg, true)
+            canvas.drawPath(seg, markPaint)
+        } else {
+            val top = cy - r * 0.42f
+            val bottom = cy + r * 0.12f
+            canvas.drawLine(cx, top, cx, top + (bottom - top) * m, markPaint)
+            if (m > 0.85f) {
+                fillPaint.color = white
+                canvas.drawCircle(cx, cy + r * 0.42f, markPaint.strokeWidth * 0.6f, fillPaint)
             }
         }
     }

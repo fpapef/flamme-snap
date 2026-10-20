@@ -339,11 +339,11 @@
       setTimeout(function () {
         try {
           if (!el.animate || !el.isConnected) return;
-          var bg = getComputedStyle(el).backgroundColor || 'rgba(0,0,0,0)';
+          // Halo discret, couleur de la flamme, qui s'efface.
           el.animate([
-            { boxShadow: '0 0 0 0 rgba(255,176,0,0.9)', backgroundColor: 'rgba(255,248,170,1)' },
-            { boxShadow: '0 0 0 12px rgba(255,176,0,0)', backgroundColor: bg }
-          ], { duration: 1100, easing: 'cubic-bezier(.2,0,0,1)' });
+            { boxShadow: '0 0 0 0 rgba(242,85,15,0.45)' },
+            { boxShadow: '0 0 0 8px rgba(242,85,15,0)' }
+          ], { duration: 900, easing: 'cubic-bezier(.32,.72,0,1)' });
         } catch (e) {}
       }, i * 120);
     });

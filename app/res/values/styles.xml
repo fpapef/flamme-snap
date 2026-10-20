@@ -1,81 +1,110 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="AppTheme" parent="@android:style/Theme.Material.Light">
-        <item name="android:colorPrimary">@color/snap_yellow</item>
-        <item name="android:colorPrimaryDark">@color/snap_yellow</item>
-        <item name="android:colorAccent">@color/ink</item>
+    <style name="Base.App" parent="@android:style/Theme.Material.Light.NoActionBar">
+        <item name="android:colorPrimary">@color/bg</item>
+        <item name="android:colorPrimaryDark">@color/bg</item>
+        <item name="android:colorAccent">@color/tint</item>
+        <item name="android:colorControlActivated">@color/tint</item>
+        <item name="android:textColorPrimary">@color/label</item>
+        <item name="android:textColorHighlight">#33F2550F</item>
+        <item name="android:statusBarColor">@color/bg</item>
         <item name="android:windowLightStatusBar">true</item>
         <item name="android:windowBackground">@color/bg</item>
-        <item name="android:textColorPrimary">@color/ink</item>
-        <item name="android:windowAnimationStyle">@style/WindowAnim</item>
+        <item name="android:windowAnimationStyle">@style/PushAnim</item>
     </style>
 
-    <!-- Écran d'accueil : pas de barre d'action, place à la flamme. -->
-    <style name="AppTheme.MainBase" parent="AppTheme">
-        <item name="android:windowActionBar">false</item>
-        <item name="android:windowNoTitle">true</item>
-        <item name="android:statusBarColor">@color/hero_top</item>
-        <item name="android:windowBackground">@drawable/bg_main</item>
+    <style name="AppTheme" parent="Base.App" />
+
+    <!-- Fond gris des listes groupées (écran Réglages). -->
+    <style name="AppTheme.Grouped" parent="AppTheme">
+        <item name="android:statusBarColor">@color/grouped_bg</item>
+        <item name="android:windowBackground">@color/grouped_bg</item>
     </style>
 
+    <style name="AppTheme.MainBase" parent="AppTheme" />
     <style name="AppTheme.Main" parent="AppTheme.MainBase" />
 
-    <!-- Transitions entre écrans -->
-    <style name="WindowAnim" parent="@android:style/Animation.Activity">
-        <item name="android:activityOpenEnterAnimation">@anim/open_enter</item>
-        <item name="android:activityOpenExitAnimation">@anim/open_exit</item>
-        <item name="android:activityCloseEnterAnimation">@anim/close_enter</item>
-        <item name="android:activityCloseExitAnimation">@anim/close_exit</item>
+    <!-- Transition « push » de l'iPhone : le nouvel écran glisse de la droite,
+         l'ancien recule d'un tiers. -->
+    <style name="PushAnim" parent="@android:style/Animation.Activity">
+        <item name="android:activityOpenEnterAnimation">@anim/push_enter</item>
+        <item name="android:activityOpenExitAnimation">@anim/push_exit</item>
+        <item name="android:activityCloseEnterAnimation">@anim/pop_enter</item>
+        <item name="android:activityCloseExitAnimation">@anim/pop_exit</item>
     </style>
 
-    <style name="Input">
+    <!-- Champ de saisie plein, sans bordure (style iOS). -->
+    <style name="Field">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">wrap_content</item>
-        <item name="android:background">@drawable/bg_input</item>
-        <item name="android:paddingStart">16dp</item>
-        <item name="android:paddingEnd">16dp</item>
-        <item name="android:paddingTop">15dp</item>
-        <item name="android:paddingBottom">15dp</item>
+        <item name="android:layout_height">54dp</item>
+        <item name="android:background">@drawable/bg_field</item>
+        <item name="android:paddingStart">18dp</item>
+        <item name="android:paddingEnd">18dp</item>
         <item name="android:textSize">17sp</item>
-        <item name="android:textColor">@color/ink</item>
-        <item name="android:textColorHint">#9A9A9A</item>
+        <item name="android:textColor">@color/label</item>
+        <item name="android:textColorHint">@color/tertiary</item>
+        <item name="android:textCursorDrawable">@drawable/cursor</item>
     </style>
 
     <style name="PrimaryButton">
         <item name="android:layout_width">match_parent</item>
-        <item name="android:layout_height">58dp</item>
-        <item name="android:background">@drawable/bg_primary_button</item>
+        <item name="android:layout_height">54dp</item>
+        <item name="android:background">@drawable/bg_button</item>
         <item name="android:textColor">#FFFFFF</item>
         <item name="android:textSize">17sp</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
         <item name="android:textAllCaps">false</item>
         <item name="android:stateListAnimator">@null</item>
         <item name="android:elevation">0dp</item>
+        <item name="android:letterSpacing">-0.01</item>
     </style>
 
-    <style name="BarButton">
-        <item name="android:layout_width">0dp</item>
+    <!-- Bouton texte (teinte), sans fond. -->
+    <style name="TextAction">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">44dp</item>
+        <item name="android:background">@null</item>
+        <item name="android:gravity">center_vertical</item>
+        <item name="android:textColor">@color/tint</item>
+        <item name="android:textSize">15sp</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+    </style>
+
+    <!-- Ligne de liste groupée (Réglages). -->
+    <style name="RowLabel">
+        <item name="android:layout_width">112dp</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_weight">1</item>
-        <item name="android:minHeight">44dp</item>
-        <item name="android:background">@drawable/bg_bar_button</item>
-        <item name="android:textColor">@color/ink</item>
-        <item name="android:textSize">14sp</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
-        <item name="android:textAllCaps">false</item>
-        <item name="android:maxLines">2</item>
-        <item name="android:paddingStart">8dp</item>
-        <item name="android:paddingEnd">8dp</item>
-        <item name="android:stateListAnimator">@null</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textColor">@color/label</item>
     </style>
 
-    <style name="FieldLabel">
+    <style name="RowField">
+        <item name="android:layout_width">0dp</item>
+        <item name="android:layout_height">52dp</item>
+        <item name="android:layout_weight">1</item>
+        <item name="android:background">@null</item>
+        <item name="android:textSize">17sp</item>
+        <item name="android:textColor">@color/label</item>
+        <item name="android:textColorHint">@color/tertiary</item>
+        <item name="android:textCursorDrawable">@drawable/cursor</item>
+        <item name="android:singleLine">true</item>
+        <item name="android:importantForAutofill">no</item>
+    </style>
+
+    <style name="SectionHeader">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">wrap_content</item>
-        <item name="android:layout_marginTop">18dp</item>
-        <item name="android:layout_marginBottom">6dp</item>
-        <item name="android:textSize">14sp</item>
-        <item name="android:fontFamily">sans-serif-medium</item>
-        <item name="android:textColor">@color/ink</item>
+        <item name="android:paddingStart">32dp</item>
+        <item name="android:paddingEnd">32dp</item>
+        <item name="android:layout_marginTop">28dp</item>
+        <item name="android:layout_marginBottom">8dp</item>
+        <item name="android:textSize">13sp</item>
+        <item name="android:textColor">@color/secondary</item>
+    </style>
+
+    <style name="Hairline">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">1px</item>
+        <item name="android:background">@color/separator</item>
     </style>
 </resources>

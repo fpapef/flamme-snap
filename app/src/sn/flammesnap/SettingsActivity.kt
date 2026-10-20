@@ -1,35 +1,57 @@
 package sn.flammesnap
 
-import android.animation.ValueAnimator
 import android.app.Activity
-import android.content.res.ColorStateList
 import android.os.Bundle
-import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
 import android.widget.EditText
+import android.widget.ScrollView
 
+/**
+ * Réglages façon app Réglages de l'iPhone : listes groupées, grand titre
+ * qui laisse place au petit titre quand on fait défiler, enregistrement automatique.
+ */
 class SettingsActivity : Activity() {
 
     private lateinit var username: EditText
     private lateinit var email: EditText
     private lateinit var phone: EditText
     private lateinit var description: EditText
-    private lateinit var saveButton: Button
-    private var saving = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_settings)
-        title = getString(R.string.settings)
-        actionBar?.setDisplayHomeAsUpEnabled(true)
+        Typo.apply(window.decorView)
 
         username = findViewById(R.id.in_username)
         email = findViewById(R.id.in_email)
         phone = findViewById(R.id.in_phone)
         description = findViewById(R.id.in_description)
-        saveButton = findViewById(R.id.save_button)
+
+        val back = findViewById<View>(R.id.back_button)
+        val done = findViewById<View>(R.id.done_button)
+        back.setOnClickListener { finish() }
+        done.setOnClickListener {
+            Motion.hapticOk(done)
+            finish()
+        }
+        Motion.highlight(back)
+        Motion.highlight(done)
+
+        // Grand titre → petit titre centré + filet, au fil du défilement.
+        val scroll = findViewById<ScrollView>(R.id.scroll)
+        val navTitle = findViewById<View>(R.id.nav_title)
+        val hairline = findViewById<View>(R.id.nav_hairline)
+        val large = findViewById<View>(R.id.large_title)
+        scroll.setOnScrollChangeListener(object : View.OnScrollChangeListener {
+            override fun onScrollChange(v: View, x: Int, y: Int, oldX: Int, oldY: Int) {
+                val h = if (large.height > 0) large.height.toFloat() else 1f
+                val f = Motion.clamp01((y - h * 0.35f) / (h * 0.5f))
+                navTitle.alpha = f
+                navTitle.translationY = (1f - f) * Motion.dp(navTitle, 6f)
+                hairline.alpha = Motion.clamp01(y / Motion.dp(hairline, 12f))
+            }
+        })
 
         if (savedInstanceState == null) {
             val p = Prefs.lire(this)
@@ -38,20 +60,16 @@ class SettingsActivity : Activity() {
             phone.setText(p.telephone)
             description.setText(p.description)
 
-            // Les champs arrivent en cascade.
             val list = findViewById<ViewGroup>(R.id.settings_list)
             val children = ArrayList<View>()
             for (i in 0 until list.childCount) children.add(list.getChildAt(i))
-            Motion.staggerIn(children, 120, 40, 18f)
+            Motion.reveal(children, 140, 45, 12f, 0f)
         }
-
-        saveButton.setOnClickListener { enregistrer() }
-        Motion.pressable(saveButton)
     }
 
-    private fun enregistrer() {
-        if (saving) return
-        saving = true
+    /** Enregistrement automatique, comme dans l'app Réglages. */
+    override fun onPause() {
+        super.onPause()
         Prefs.enregistrer(
             this,
             Profil(
@@ -61,26 +79,5 @@ class SettingsActivity : Activity() {
                 description.text.toString().trim()
             )
         )
-        // Le bouton devient vert avec une coche, puis on revient à l'accueil.
-        Motion.hapticOk(saveButton)
-        saveButton.setText(R.string.saved)
-        val from = Motion.col("#111111")
-        val to = Motion.col("#16A34A")
-        val a = ValueAnimator.ofArgb(from, to)
-        a.duration = 320
-        a.addUpdateListener { va ->
-            saveButton.backgroundTintList = ColorStateList.valueOf(va.animatedValue as Int)
-        }
-        a.start()
-        Motion.pop(saveButton, 0.06f)
-        saveButton.postDelayed({ finish() }, if (Motion.animationsOn()) 650L else 0L)
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        if (item.itemId == android.R.id.home) {
-            finish()
-            return true
-        }
-        return super.onOptionsItemSelected(item)
     }
 }

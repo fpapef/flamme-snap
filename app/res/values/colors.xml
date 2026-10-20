@@ -1,13 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="snap_yellow">#FFFC00</color>
-    <color name="hero_top">#FFFAD1</color>
-    <color name="ink">#111111</color>
-    <color name="muted">#666666</color>
+    <!-- Palette sobre façon Apple : noir doux, gris, une seule teinte (la flamme). -->
+    <color name="label">#1D1D1F</color>
+    <color name="secondary">#86868B</color>
+    <color name="tertiary">#AEAEB2</color>
     <color name="bg">#FFFFFF</color>
-    <color name="bar_bg">#FFFBD1</color>
-    <color name="input_stroke">#D6D6D6</color>
-    <color name="input_bg">#FAFAFA</color>
-    <color name="flame_outer">#FF5A1F</color>
-    <color name="flame_inner">#FFC93C</color>
+    <color name="grouped_bg">#F2F2F7</color>
+    <color name="fill">#F2F2F7</color>
+    <color name="separator">#E5E5EA</color>
+    <color name="tint">#F2550F</color>
+    <color name="red">#FF3B30</color>
+    <color name="button_pressed">#3A3A3C</color>
 </resources>

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Android 12+ : écran de lancement jaune avec l'icône flamme. -->
+    <!-- Android 12+ : écran de lancement blanc avec l'icône. -->
     <style name="AppTheme.Main" parent="AppTheme.MainBase">
-        <item name="android:windowSplashScreenBackground">@color/snap_yellow</item>
+        <item name="android:windowSplashScreenBackground">@color/bg</item>
     </style>
 </resources>

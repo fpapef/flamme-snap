@@ -1,77 +1,195 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:orientation="vertical">
 
-    <LinearLayout
-        android:id="@+id/settings_list"
+    <!-- Barre de navigation : le petit titre apparaît quand le grand titre défile -->
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:paddingStart="20dp"
-        android:paddingTop="8dp"
-        android:paddingEnd="20dp"
-        android:paddingBottom="28dp">
+        android:layout_height="52dp">
 
         <TextView
-            style="@style/FieldLabel"
-            android:text="@string/lbl_username" />
-
-        <EditText
-            android:id="@+id/in_username"
-            style="@style/Input"
-            android:importantForAutofill="no"
-            android:inputType="text|textNoSuggestions"
-            android:singleLine="true" />
-
-        <TextView
-            style="@style/FieldLabel"
-            android:text="@string/lbl_email" />
-
-        <EditText
-            android:id="@+id/in_email"
-            style="@style/Input"
-            android:importantForAutofill="no"
-            android:inputType="textEmailAddress"
-            android:singleLine="true" />
+            android:id="@+id/back_button"
+            style="@style/TextAction"
+            android:layout_gravity="start|center_vertical"
+            android:drawableStart="@drawable/ic_chevron_left"
+            android:drawablePadding="6dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:text="@string/back"
+            android:textSize="17sp" />
 
         <TextView
-            style="@style/FieldLabel"
-            android:text="@string/lbl_phone" />
-
-        <EditText
-            android:id="@+id/in_phone"
-            style="@style/Input"
-            android:importantForAutofill="no"
-            android:inputType="phone"
-            android:singleLine="true" />
-
-        <TextView
-            style="@style/FieldLabel"
-            android:text="@string/lbl_description" />
-
-        <EditText
-            android:id="@+id/in_description"
-            style="@style/Input"
-            android:gravity="top|start"
-            android:importantForAutofill="no"
-            android:inputType="textMultiLine|textCapSentences"
-            android:minLines="5" />
-
-        <sn.flammesnap.ShineButton
-            android:id="@+id/save_button"
-            style="@style/PrimaryButton"
-            android:layout_marginTop="24dp"
-            android:text="@string/save" />
+            android:id="@+id/nav_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:alpha="0"
+            android:tag="semibold"
+            android:text="@string/settings"
+            android:textColor="@color/label"
+            android:textSize="17sp" />
 
         <TextView
+            android:id="@+id/done_button"
+            style="@style/TextAction"
+            android:layout_gravity="end|center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="18dp"
+            android:tag="semibold"
+            android:text="@string/done"
+            android:textSize="17sp" />
+
+        <View
+            android:id="@+id/nav_hairline"
+            style="@style/Hairline"
+            android:layout_gravity="bottom"
+            android:alpha="0" />
+    </FrameLayout>
+
+    <ScrollView
+        android:id="@+id/scroll"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:fillViewport="true">
+
+        <LinearLayout
+            android:id="@+id/settings_list"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="12dp"
-            android:gravity="center"
-            android:text="@string/settings_note"
-            android:textColor="#888888"
-            android:textSize="13sp" />
-    </LinearLayout>
-</ScrollView>
+            android:orientation="vertical"
+            android:paddingBottom="36dp">
+
+            <TextView
+                android:id="@+id/large_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:letterSpacing="-0.03"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:tag="display"
+                android:text="@string/settings"
+                android:textColor="@color/label"
+                android:textSize="34sp" />
+
+            <TextView
+                style="@style/SectionHeader"
+                android:text="@string/section_account" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/bg_group"
+                android:orientation="vertical">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp">
+
+                    <TextView
+                        style="@style/RowLabel"
+                        android:text="@string/lbl_username" />
+
+                    <EditText
+                        android:id="@+id/in_username"
+                        style="@style/RowField"
+                        android:hint="@string/hint_username"
+                        android:inputType="text|textNoSuggestions" />
+                </LinearLayout>
+
+                <View
+                    style="@style/Hairline"
+                    android:layout_marginStart="16dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp">
+
+                    <TextView
+                        style="@style/RowLabel"
+                        android:text="@string/lbl_email" />
+
+                    <EditText
+                        android:id="@+id/in_email"
+                        style="@style/RowField"
+                        android:hint="@string/hint_email"
+                        android:inputType="textEmailAddress" />
+                </LinearLayout>
+
+                <View
+                    style="@style/Hairline"
+                    android:layout_marginStart="16dp" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center_vertical"
+                    android:orientation="horizontal"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp">
+
+                    <TextView
+                        style="@style/RowLabel"
+                        android:text="@string/lbl_phone" />
+
+                    <EditText
+                        android:id="@+id/in_phone"
+                        style="@style/RowField"
+                        android:hint="@string/hint_phone"
+                        android:inputType="phone" />
+                </LinearLayout>
+            </LinearLayout>
+
+            <TextView
+                style="@style/SectionHeader"
+                android:text="@string/section_message" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="16dp"
+                android:layout_marginEnd="16dp"
+                android:background="@drawable/bg_group"
+                android:orientation="vertical">
+
+                <EditText
+                    android:id="@+id/in_description"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@null"
+                    android:gravity="top|start"
+                    android:importantForAutofill="no"
+                    android:inputType="textMultiLine|textCapSentences"
+                    android:lineSpacingExtra="3dp"
+                    android:minLines="5"
+                    android:padding="16dp"
+                    android:textColor="@color/label"
+                    android:textCursorDrawable="@drawable/cursor"
+                    android:textSize="17sp" />
+            </LinearLayout>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:lineSpacingExtra="2dp"
+                android:paddingStart="32dp"
+                android:paddingEnd="32dp"
+                android:text="@string/settings_note"
+                android:textColor="@color/secondary"
+                android:textSize="13sp" />
+        </LinearLayout>
+    </ScrollView>
+</LinearLayout>
