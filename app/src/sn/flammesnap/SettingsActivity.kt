@@ -2,6 +2,9 @@ package sn.flammesnap
 
 import android.app.Activity
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.util.Patterns
 import android.view.View
 import android.view.ViewGroup
 import android.widget.EditText
@@ -19,6 +22,7 @@ class SettingsActivity : Activity() {
     private lateinit var phone: EditText
     private lateinit var description: EditText
     private lateinit var lang: Segmented
+    private lateinit var check: TextView
     private var langue = "fr"
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -31,6 +35,7 @@ class SettingsActivity : Activity() {
         phone = findViewById(R.id.in_phone)
         description = findViewById(R.id.in_description)
         lang = findViewById(R.id.lang_segmented)
+        check = findViewById(R.id.account_check)
 
         val back = findViewById<View>(R.id.back_button)
         val done = findViewById<View>(R.id.done_button)
@@ -87,6 +92,52 @@ class SettingsActivity : Activity() {
             val children = ArrayList<View>()
             for (i in 0 until list.childCount) children.add(list.getChildAt(i))
             Motion.reveal(children, 140, 40, 12f, 0f)
+        }
+
+        // Vérification douce de l'e-mail et du numéro, pendant la saisie.
+        val w = object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                verifier(true)
+            }
+        }
+        email.addTextChangedListener(w)
+        phone.addTextChangedListener(w)
+        verifier(false)
+    }
+
+    private fun verifier(animer: Boolean) {
+        val e = email.text.toString().trim()
+        val p = phone.text.toString().replace(" ", "").replace("-", "").replace(".", "")
+        var chiffres = 0
+        for (c in p) if (c.isDigit()) chiffres++
+        val msg = when {
+            e.isNotEmpty() && !Patterns.EMAIL_ADDRESS.matcher(e).matches() -> getString(R.string.check_email)
+            p.isNotEmpty() && (!p.startsWith("+") || chiffres < 8) -> getString(R.string.check_phone)
+            else -> ""
+        }
+        if (msg.isEmpty()) {
+            if (check.visibility == View.VISIBLE) {
+                if (animer && Motion.animationsOn()) {
+                    check.animate().cancel()
+                    check.animate().alpha(0f).setDuration(180).withEndAction { check.visibility = View.GONE }.start()
+                } else {
+                    check.visibility = View.GONE
+                }
+            }
+            return
+        }
+        check.text = msg
+        if (check.visibility != View.VISIBLE) {
+            check.visibility = View.VISIBLE
+            if (animer && Motion.animationsOn()) {
+                check.alpha = 0f
+                check.animate().cancel()
+                check.animate().alpha(1f).setDuration(240).start()
+            } else {
+                check.alpha = 1f
+            }
         }
     }
 

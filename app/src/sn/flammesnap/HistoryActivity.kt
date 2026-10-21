@@ -69,7 +69,10 @@ class HistoryActivity : Activity() {
         }
         var envoyees = 0
         for (d in data) if (d.envoyee) envoyees++
-        summary.text = getString(R.string.hist_summary, envoyees, data.size - envoyees)
+        val nonConf = data.size - envoyees
+        var resume = resources.getQuantityString(R.plurals.hist_sent, envoyees, envoyees)
+        if (nonConf > 0) resume += " · " + resources.getQuantityString(R.plurals.hist_unconfirmed, nonConf, nonConf)
+        summary.text = resume
 
         val jour = SimpleDateFormat("yyyyMMdd", Locale.FRANCE)
         val heure = SimpleDateFormat("HH:mm", Locale.FRANCE)

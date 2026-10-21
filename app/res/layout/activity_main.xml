@@ -114,6 +114,7 @@
                 android:contentDescription="@string/paste"
                 android:focusable="true"
                 android:padding="11dp"
+                android:scaleType="centerInside"
                 android:src="@drawable/ic_paste" />
         </FrameLayout>
 
@@ -229,12 +230,15 @@
                 android:layout_height="32dp" />
 
             <TextView
+                android:id="@+id/details_note"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
+                android:lineSpacingExtra="2dp"
                 android:paddingStart="4dp"
+                android:paddingEnd="4dp"
                 android:text="@string/details_note"
-                android:textColor="@color/tertiary"
+                android:textColor="@color/secondary"
                 android:textSize="12sp" />
         </LinearLayout>
 

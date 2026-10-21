@@ -20,6 +20,7 @@
     <string name="multi_hint">%1$d amis · une demande chacun, à la suite</string>
     <string name="invalid_hint">« %1$s » ne ressemble pas à un pseudo Snapchat.</string>
     <string name="paste">Coller</string>
+    <string name="clear">Effacer</string>
     <string name="nothing_to_paste">Aucun pseudo à coller.</string>
     <string name="share_none">Aucun pseudo trouvé dans ce partage.</string>
     <string name="recents">Récents</string>
@@ -27,13 +28,24 @@
     <string name="details_toggle">Détails facultatifs</string>
     <string name="days_hint">Durée de la flamme, en jours</string>
     <string name="lost">Disparue</string>
+    <string name="sc_new_short">Restaurer</string>
+    <string name="sc_new_long">Nouvelle demande</string>
+    <string name="sc_history_short">Demandes</string>
+    <string name="sc_history_long">Mes demandes</string>
     <string name="lost_today">Aujourd\'hui</string>
     <string name="lost_yesterday">Hier</string>
     <string name="lost_before">Avant-hier</string>
     <string name="details_note">Ajouté à la fin du message envoyé à Snapchat.</string>
+    <string name="details_preview">Ajouté au message : « %1$s »</string>
+    <string name="preview_friend">ton ami</string>
+    <string name="preview_friend_en">your friend</string>
+    <string name="lost_a11y">Disparue : %1$s</string>
+    <string name="lost_a11y_none">Disparue : non précisé</string>
     <string name="profile_summary">Au nom de %1$s</string>
-    <string name="summary_sent_one">" · 1 demande envoyée"</string>
-    <string name="summary_sent_many">" · %1$d demandes envoyées"</string>
+    <plurals name="summary_sent">
+        <item quantity="one">" · %1$d demande envoyée"</item>
+        <item quantity="other">" · %1$d demandes envoyées"</item>
+    </plurals>
 
     <!-- Réglages -->
     <string name="section_account">Ton compte</string>
@@ -47,6 +59,8 @@
     <string name="lang_fr">Français</string>
     <string name="lang_en">English</string>
     <string name="lang_note">Chaque langue garde son propre message. Les détails facultatifs sont ajoutés dans la même langue.</string>
+    <string name="check_email">Cette adresse e-mail semble incomplète.</string>
+    <string name="check_phone">Ajoute l\'indicatif du pays, par exemple +221.</string>
     <string name="settings_note">Les modifications sont enregistrées automatiquement et restent uniquement sur ton téléphone.</string>
     <string name="section_about">À propos</string>
     <string name="version">Version</string>
@@ -58,7 +72,14 @@
     <string name="yesterday">Hier</string>
     <string name="sent_at">Envoyée à %1$s</string>
     <string name="filled_at">Remplie à %1$s · envoi non confirmé</string>
-    <string name="hist_summary">%1$d envoyée(s) · %2$d non confirmée(s)</string>
+    <plurals name="hist_sent">
+        <item quantity="one">%1$d envoyée</item>
+        <item quantity="other">%1$d envoyées</item>
+    </plurals>
+    <plurals name="hist_unconfirmed">
+        <item quantity="one">%1$d non confirmée</item>
+        <item quantity="other">%1$d non confirmées</item>
+    </plurals>
     <string name="redo">Refaire une demande</string>
     <string name="mark_sent">Marquer comme envoyée</string>
     <string name="delete">Supprimer</string>
@@ -85,7 +106,10 @@
     <string name="st_sent_detail">Pour %1$s. Snapchat te répondra par e-mail.</string>
     <string name="st_sent_next">Pour %1$s. Ensuite : %2$s.</string>
     <string name="st_all_title">Tout est envoyé</string>
-    <string name="st_all_detail">%1$d demandes envoyées. Snapchat te répondra par e-mail.</string>
+    <plurals name="st_all_detail">
+        <item quantity="one">%1$d demande envoyée. Snapchat te répondra par e-mail.</item>
+        <item quantity="other">%1$d demandes envoyées. Snapchat te répondra par e-mail.</item>
+    </plurals>
     <string name="st_notsent_title">Pas encore envoyé</string>
     <string name="st_notsent_detail">Coche le reCAPTCHA, puis touche Envoyer.</string>
     <string name="refill">Remplir à nouveau</string>

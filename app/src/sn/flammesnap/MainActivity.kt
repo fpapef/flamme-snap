@@ -12,6 +12,8 @@ import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.view.inputmethod.InputMethodManager
+import android.widget.ImageView
 import android.widget.EditText
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -21,6 +23,8 @@ class MainActivity : Activity() {
 
     companion object {
         private const val REQ_FORM = 7
+        const val ACTION_NEW = "sn.flammesnap.NEW"
+        const val ACTION_HISTORY = "sn.flammesnap.HISTORY"
     }
 
     private lateinit var flame: FlameView
@@ -34,9 +38,11 @@ class MainActivity : Activity() {
     private lateinit var detailsChevron: View
     private lateinit var daysInput: EditText
     private lateinit var lost: Segmented
-    private lateinit var paste: View
+    private lateinit var paste: ImageView
+    private lateinit var detailsNote: TextView
     private var navigating = false
     private var hintIsError = false
+    private var modeEffacer = false
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +61,7 @@ class MainActivity : Activity() {
         daysInput = findViewById(R.id.days_input)
         lost = findViewById(R.id.lost_segmented)
         paste = findViewById(R.id.paste_button)
+        detailsNote = findViewById(R.id.details_note)
         val settings = findViewById<View>(R.id.settings_button)
         val history = findViewById<View>(R.id.history_button)
         val detailsToggle = findViewById<View>(R.id.details_toggle)
@@ -65,7 +72,7 @@ class MainActivity : Activity() {
         continueButton.setOnClickListener { continuer() }
         settings.setOnClickListener { startActivity(Intent(this, SettingsActivity::class.java)) }
         history.setOnClickListener { startActivity(Intent(this, HistoryActivity::class.java)) }
-        paste.setOnClickListener { coller() }
+        paste.setOnClickListener { if (modeEffacer) effacer() else coller() }
         detailsToggle.setOnClickListener { basculerDetails() }
         Motion.pressScale(continueButton)
         Motion.highlight(settings)
@@ -75,6 +82,19 @@ class MainActivity : Activity() {
 
         lost.setItems(arrayOf(getString(R.string.lost_today), getString(R.string.lost_yesterday), getString(R.string.lost_before)))
         lost.allowNone = true
+        lost.contentDescription = getString(R.string.lost_a11y_none)
+        lost.listener = { i ->
+            lost.contentDescription = if (i < 0) getString(R.string.lost_a11y_none)
+            else getString(R.string.lost_a11y, lost.labelAt(i))
+            majApercu()
+        }
+        daysInput.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) {
+                majApercu()
+            }
+        })
 
         friendInput.setOnEditorActionListener(object : TextView.OnEditorActionListener {
             override fun onEditorAction(v: TextView?, actionId: Int, event: KeyEvent?): Boolean {
@@ -95,6 +115,8 @@ class MainActivity : Activity() {
             }
             override fun afterTextChanged(s: Editable?) {
                 majAide()
+                majBoutonChamp()
+                majApercu()
             }
         })
 
@@ -107,12 +129,72 @@ class MainActivity : Activity() {
             )
             Motion.reveal(listOf(settings, history), 700, 0, 0f, 0f)
             recevoirPartage(intent)
+            raccourci(intent)
         }
+        majBoutonChamp()
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         recevoirPartage(intent)
+        raccourci(intent)
+    }
+
+    // ---------- raccourcis de l'icône (appui long) ----------
+
+    private fun raccourci(i: Intent?) {
+        when (i?.action) {
+            ACTION_HISTORY -> {
+                setIntent(Intent(this, MainActivity::class.java))
+                startActivity(Intent(this, HistoryActivity::class.java))
+            }
+            ACTION_NEW -> {
+                setIntent(Intent(this, MainActivity::class.java))
+                friendInput.post {
+                    friendInput.requestFocus()
+                    val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                    imm.showSoftInput(friendInput, InputMethodManager.SHOW_IMPLICIT)
+                }
+            }
+        }
+    }
+
+    // ---------- bouton du champ : Coller ↔ Effacer (⊗) ----------
+
+    private fun majBoutonChamp() {
+        val effacer = friendInput.text.isNotEmpty()
+        if (effacer == modeEffacer) return
+        modeEffacer = effacer
+        val icone = if (effacer) R.drawable.ic_clear else R.drawable.ic_paste
+        paste.contentDescription = getString(if (effacer) R.string.clear else R.string.paste)
+        if (!Motion.animationsOn()) {
+            paste.setImageResource(icone)
+            return
+        }
+        paste.animate().cancel()
+        paste.animate().alpha(0f).scaleX(0.6f).scaleY(0.6f).setDuration(110).withEndAction {
+            paste.setImageResource(icone)
+            paste.animate().alpha(1f).scaleX(1f).scaleY(1f).setDuration(320)
+                .setInterpolator(Motion.SPRING).start()
+        }.start()
+    }
+
+    private fun effacer() {
+        friendInput.setText("")
+        friendInput.requestFocus()
+        paste.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)
+    }
+
+    // ---------- aperçu de la phrase « Détails » ----------
+
+    private fun majApercu() {
+        val noms = Pseudos.depuisSaisie(friendInput.text.toString())
+        val langue = Prefs.langue(this)
+        val ami = if (noms.isNotEmpty()) noms[0]
+        else getString(if (langue == "en") R.string.preview_friend_en else R.string.preview_friend)
+        val phrase = Pseudos.details(langue, ami, jours(), lost.selected, System.currentTimeMillis()).trim()
+        detailsNote.text = if (phrase.isEmpty()) getString(R.string.details_note)
+        else getString(R.string.details_preview, phrase)
     }
 
     override fun onResume() {
@@ -120,6 +202,7 @@ class MainActivity : Activity() {
         navigating = false
         majResume()
         majRecents()
+        majApercu()
     }
 
     // ---------- partage depuis Snapchat / presse-papiers ----------
@@ -170,8 +253,19 @@ class MainActivity : Activity() {
 
     private fun majAide() {
         val noms = Pseudos.depuisSaisie(friendInput.text.toString())
-        continueButton.text = if (noms.size > 1) getString(R.string.continue_n, noms.size)
+        val libelle = if (noms.size > 1) getString(R.string.continue_n, noms.size)
         else getString(R.string.continue_btn)
+        if (continueButton.text.toString() != libelle) {
+            if (Motion.animationsOn() && continueButton.isLaidOut) {
+                continueButton.animate().cancel()
+                continueButton.animate().alpha(0.55f).setDuration(80).withEndAction {
+                    continueButton.text = libelle
+                    continueButton.animate().alpha(1f).setDuration(220).setInterpolator(Motion.IOS).start()
+                }.start()
+            } else {
+                continueButton.text = libelle
+            }
+        }
         var invalide: String? = null
         for (n in noms) if (!Pseudos.estValide(n)) { invalide = n; break }
         when {
@@ -247,8 +341,7 @@ class MainActivity : Activity() {
     private fun majResume() {
         val n = Store.nbEnvoyees(this)
         var s = getString(R.string.profile_summary, Prefs.lire(this).pseudo)
-        if (n == 1) s += getString(R.string.summary_sent_one)
-        else if (n > 1) s += getString(R.string.summary_sent_many, n)
+        if (n > 0) s += resources.getQuantityString(R.plurals.summary_sent, n, n)
         summary.text = s
     }
 
@@ -266,6 +359,9 @@ class MainActivity : Activity() {
             return
         }
         navigating = true
+        val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(friendInput.windowToken, 0)
+        friendInput.clearFocus()
         Store.addRecents(this, noms)
         Motion.hapticOk(continueButton)
         flame.boost()

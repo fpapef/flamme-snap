@@ -12,15 +12,16 @@ Tu tapes le pseudo de ton ami : l'appli ouvre le formulaire d'assistance de Snap
 - **Détection de l'envoi** : l'appli repère quand ta demande est partie et propose l'ami suivant.
 - **Historique des demandes**, classées par jour (envoyées ou non confirmées).
 - **Amis récents** en un tap, **partage depuis Snapchat** (Partager → Flamme Snap) et bouton **Coller**.
-- **Détails facultatifs** : durée de la flamme et jour de disparition ajoutés au message.
+- **Détails facultatifs** : durée de la flamme et jour de disparition ajoutés au message, avec un aperçu en direct.
 - **Message en français ou en anglais**, et **mode sombre** automatique.
 - **Réglages** façon app Réglages de l'iPhone : ton pseudo, ton e-mail, ton numéro et le message, enregistrés automatiquement.
+- **Actions rapides** sur l'icône (appui long) : « Nouvelle demande » et « Mes demandes ».
 - **Kit navigateur** : si le reCAPTCHA ne s'affiche pas, ouvre le formulaire dans ton navigateur et copie chaque info d'un geste.
 - **Design épuré façon Apple** : police Inter, blanc pur, une seule couleur (celle de la flamme), flamme animée discrète, transitions façon iPhone.
 
 ## Installation
 
-1. Télécharge le fichier `FlammeSnap-1.3.apk` de la dernière version dans [Releases](../../releases).
+1. Télécharge le fichier `FlammeSnap-1.4.apk` de la dernière version dans [Releases](../../releases).
 2. Ouvre-le sur le téléphone et autorise l'installation d'applis de source inconnue si Android le demande.
 3. Au premier lancement, ouvre **Réglages** et entre : ton nom d'utilisateur Snapchat, ton e-mail et ton numéro avec l'indicatif du pays (par exemple +221).
 
@@ -36,6 +37,7 @@ Android 7 ou plus récent. Chaque nouvelle version s'installe par-dessus la pré
 
 | Version | Nouveautés |
 |---|---|
+| [1.4](../../releases/tag/v1.4) | Bouton ⊗, aperçu des détails, actions rapides sur l'icône, détection d'envoi plus fiable |
 | [1.3](../../releases/tag/v1.3) | Plusieurs amis à la suite, détection de l'envoi, historique, amis récents, mode sombre |
 | [1.2](../../releases/tag/v1.2) | Design épuré façon Apple : police Inter, une seule couleur, transitions façon iPhone |
 | [1.1](../../releases/tag/v1.1) | Motion design : flamme animée, transitions, carte d'état, confettis |
@@ -59,6 +61,8 @@ KS_PASS=mot-de-passe ./build.sh  # build/FlammeSnap.apk
 ```
 
 La clé de signature n'est pas publiée dans ce dépôt : `build.sh` utilise `~/flammesnap-release.jks` (ou la variable `KEYSTORE`) et en crée une s'il n'y en a pas. À chaque version publiée, le workflow [`apk.yml`](.github/workflows/apk.yml) construit l'APK signé et le joint à la version dans Releases.
+
+`tools/stdlib-fix` contient une version d'une classe de la bibliothèque Kotlin réécrite sans `invokedynamic`, que l'outil dx refuse pour Android 7 ; son comportement est identique à l'original.
 
 ## Structure
 

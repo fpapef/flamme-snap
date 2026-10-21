@@ -1,5 +1,16 @@
 # Journal des versions
 
+## 1.4 — 21 octobre 2026
+
+- Bouton ⊗ dans le champ pour tout effacer.
+- Aperçu en direct de la phrase « Détails » ajoutée au message.
+- Actions rapides sur l'icône (appui long) : « Nouvelle demande », « Mes demandes ».
+- Réglages : vérification douce de l'e-mail et de l'indicatif du numéro.
+- Détection de l'envoi plus fiable : second moyen de repérage, attente du chargement, re-remplissage discret si Snapchat refuse l'envoi.
+- La série d'amis est conservée si l'écran est recréé (mode sombre…).
+- Textes au bon pluriel, clavier qui se ferme en continuant.
+- Correction d'un risque de plantage lié à la bibliothèque Kotlin.
+
 ## 1.3 — 20 octobre 2026
 
 - Plusieurs amis d'un coup (espaces ou virgules) : une demande par ami, à la suite, avec « Ami suivant ».

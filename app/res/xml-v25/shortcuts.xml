@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Actions rapides : appui long sur l'icône de l'app -->
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_sc_new"
+        android:shortcutId="nouvelle"
+        android:shortcutLongLabel="@string/sc_new_long"
+        android:shortcutShortLabel="@string/sc_new_short">
+        <intent
+            android:action="sn.flammesnap.NEW"
+            android:targetClass="sn.flammesnap.MainActivity"
+            android:targetPackage="sn.flammesnap" />
+    </shortcut>
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_sc_history"
+        android:shortcutId="demandes"
+        android:shortcutLongLabel="@string/sc_history_long"
+        android:shortcutShortLabel="@string/sc_history_short">
+        <intent
+            android:action="sn.flammesnap.HISTORY"
+            android:targetClass="sn.flammesnap.MainActivity"
+            android:targetPackage="sn.flammesnap" />
+    </shortcut>
+</shortcuts>

@@ -13,8 +13,8 @@ SIGNER="$T/uber-apk-signer.jar"
 KS="${KEYSTORE:-$HOME/flammesnap-release.jks}"
 # Clé de signature : jamais publiée. Mot de passe dans la variable KS_PASS.
 : "${KS_PASS:?Définis KS_PASS (mot de passe de la clé de signature)}"
-VERSION_CODE=4
-VERSION_NAME="1.3"
+VERSION_CODE=5
+VERSION_NAME="1.4"
 
 B=build
 rm -rf "$B"
@@ -43,7 +43,14 @@ echo "4/6 Kotlin (kotlinc)"
 
 echo "5/6 Dex (dx)"
 cp "$STDLIB" "$B/stdlib.jar"
-zip -q -d "$B/stdlib.jar" 'META-INF/versions/*' 'kotlin/comparisons/ComparisonsKt__ComparisonsKt.class' 'kotlin/streams/jdk8/*' >/dev/null 2>&1 || true
+# kotlin.streams.jdk8 (Java 8 streams) n'est jamais utilisé ; on le retire.
+zip -q -d "$B/stdlib.jar" 'META-INF/versions/*' 'kotlin/streams/jdk8/*' >/dev/null 2>&1 || true
+# ComparisonsKt__ComparisonsKt utilise invokedynamic (refusé par dx pour Android 7) :
+# on le remplace par une version équivalente sans invokedynamic (tools/stdlib-fix).
+mkdir -p "$B/stdfix"
+javac -nowarn --release 8 -d "$B/stdfix" -classpath "$STDLIB" \
+  tools/stdlib-fix/kotlin/comparisons/ComparisonsKt__ComparisonsKt.java 2>&1 | grep -v "warning: \[options\]" || true
+(cd "$B/stdfix" && zip -q "../stdlib.jar" kotlin/comparisons/*.class)
 java -Xmx2g -cp "$DX" com.android.dx.command.Main --dex --min-sdk-version=24 \
   --output="$B/dex/classes.dex" "$B/classes" "$B/stdlib.jar"
 

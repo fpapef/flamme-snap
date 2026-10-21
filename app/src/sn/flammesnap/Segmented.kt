@@ -53,6 +53,8 @@ class Segmented(context: Context, attrs: AttributeSet?) : View(context, attrs) {
         isFocusable = true
     }
 
+    fun labelAt(i: Int): String = if (i >= 0 && i < labels.size) labels[i] else ""
+
     fun setItems(items: Array<String>) {
         labels = items
         contentDescription = items.joinToString(", ")

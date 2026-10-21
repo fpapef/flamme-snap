@@ -84,13 +84,19 @@ class FormActivity : Activity() {
     private var celebrated = false
     private var sentCurrent = false
     private var pendingSubmit = false
+    private var filled = false            // le formulaire de l'ami en cours a été rempli
+    private var postSeen = false          // un envoi (POST) vers Snapchat a été repéré
+    private var sendingShown = false
+    private var pageLoading = false
+    private var silentFill = false
+    private var verifTries = 0
     private var clearHistoryNext = false
     private var historyId = -1L
     private var sentCount = 0
     private var fileCallback: ValueCallback<Array<Uri>>? = null
 
     private val verifRunnable = Runnable { verifierEnvoi() }
-    private val envoiRunnable = Runnable { envoiDetecte() }
+    private val envoiRunnable = Runnable { debutEnvoi(true) }
 
     @SuppressLint("SetJavaScriptEnabled", "AddJavascriptInterface")
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -105,6 +111,15 @@ class FormActivity : Activity() {
         }
         jours = intent.getIntExtra(EXTRA_DAYS, 0)
         decalage = intent.getIntExtra(EXTRA_LOST, -1)
+        // Écran recréé (mode sombre, langue du téléphone…) : on garde sa place dans la série.
+        if (savedInstanceState != null) {
+            index = savedInstanceState.getInt("index", 0).coerceIn(0, amis.size - 1)
+            sentCount = savedInstanceState.getInt("sentCount", 0)
+            historyId = savedInstanceState.getLong("historyId", -1L)
+            sentCurrent = savedInstanceState.getBoolean("sentCurrent", false)
+            filled = savedInstanceState.getBoolean("filled", false)
+            if (sentCurrent) setResult(RESULT_OK)
+        }
         fillScript = assets.open("fill.js").bufferedReader(Charsets.UTF_8).use { it.readText() }
 
         web = findViewById(R.id.web)
@@ -187,9 +202,14 @@ class FormActivity : Activity() {
 
             override fun onPageStarted(view: WebView, url: String?, favicon: android.graphics.Bitmap?) {
                 loadFailed = false
+                pageLoading = true
+                // Secours : la page change alors que le formulaire était rempli
+                // (envoi classique sans requête repérée). On vérifie, sans rien supposer.
+                if (filled && !sentCurrent && url != null && !url.contains("/requests/new")) debutEnvoi(false)
             }
 
             override fun onPageFinished(view: WebView, url: String?) {
+                pageLoading = false
                 montrerPage()
                 if (clearHistoryNext) {
                     clearHistoryNext = false
@@ -197,7 +217,7 @@ class FormActivity : Activity() {
                 }
                 if (pendingSubmit) {
                     handler.removeCallbacks(verifRunnable)
-                    handler.postDelayed(verifRunnable, 3500)
+                    handler.postDelayed(verifRunnable, 3000)
                     return
                 }
                 if (!loadFailed && !sentCurrent && estUnePageDeDemande(url)) injecter()
@@ -236,8 +256,18 @@ class FormActivity : Activity() {
             }
         }
 
-        afficherEtat(getString(R.string.st_loading_title), getString(R.string.st_loading_detail), StatusBadge.LOADING)
+        if (sentCurrent) afficherEnvoye()
+        else afficherEtat(getString(R.string.st_loading_title), getString(R.string.st_loading_detail), StatusBadge.LOADING)
         web.loadUrl(FORM_URL)
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putInt("index", index)
+        outState.putInt("sentCount", sentCount)
+        outState.putLong("historyId", historyId)
+        outState.putBoolean("sentCurrent", sentCurrent)
+        outState.putBoolean("filled", filled)
     }
 
     private fun ami(): String = amis[index]
@@ -272,7 +302,7 @@ class FormActivity : Activity() {
     }
 
     /** Envoie le script de remplissage avec les valeurs du profil et de l'ami en cours. */
-    private fun injecter() {
+    private fun injecter(silencieux: Boolean = false) {
         val p = Prefs.lire(this)
         val cfg = JSONObject()
         cfg.put("email", p.email)
@@ -280,8 +310,11 @@ class FormActivity : Activity() {
         cfg.put("phone", p.telephone)
         cfg.put("description", messageComplet(p))
         cfg.put("friend", ami())
-        celebrated = false
-        afficherEtat(getString(R.string.st_filling_title), getString(R.string.st_filling_detail), StatusBadge.FILLING)
+        silentFill = silencieux
+        if (!silencieux) {
+            celebrated = false
+            afficherEtat(getString(R.string.st_filling_title), getString(R.string.st_filling_detail), StatusBadge.FILLING)
+        }
         web.evaluateJavascript("window.__snapFillCfg = $cfg;\n$fillScript", null)
     }
 
@@ -289,50 +322,105 @@ class FormActivity : Activity() {
         p.description + Pseudos.details(p.langue, ami(), jours, decalage, System.currentTimeMillis())
 
     private fun remplirANouveau() {
-        if (loadFailed || !estUnePageDeDemande(web.url)) {
+        handler.removeCallbacks(verifRunnable)
+        pendingSubmit = false
+        postSeen = false
+        sendingShown = false
+        val nouvelle = sentCurrent
+        if (nouvelle) {
+            // Déjà envoyée : on prépare une nouvelle demande pour le même ami.
+            sentCurrent = false
+            filled = false
+            celebrated = false
+            historyId = -1L
+            majActions()
+        }
+        val url = web.url ?: ""
+        if (nouvelle || loadFailed || !url.contains("/requests/new")) {
             afficherEtat(getString(R.string.st_loading_title), getString(R.string.st_loading_detail), StatusBadge.LOADING)
             web.loadUrl(FORM_URL)
         } else {
-            sentCurrent = false
             injecter()
         }
     }
 
     // ---------- envoi ----------
 
-    private fun envoiDetecte() {
-        if (sentCurrent || pendingSubmit || isDestroyed) return
-        pendingSubmit = true
-        afficherEtat(getString(R.string.st_sending_title), getString(R.string.st_sending_detail), StatusBadge.LOADING)
-        handler.removeCallbacks(verifRunnable)
-        handler.postDelayed(verifRunnable, 5000) // si la page ne se recharge pas (envoi en arrière-plan)
+    /**
+     * Début possible d'un envoi. [post] : une requête d'envoi vers Snapchat a été vue
+     * (signal fort) ; sinon la page a seulement changé (signal faible : il faudra
+     * un message de confirmation pour conclure).
+     */
+    private fun debutEnvoi(post: Boolean) {
+        if (sentCurrent || isDestroyed) return
+        if (post) {
+            postSeen = true
+            if (!sendingShown) {
+                sendingShown = true
+                afficherEtat(getString(R.string.st_sending_title), getString(R.string.st_sending_detail), StatusBadge.LOADING)
+            }
+        }
+        if (!pendingSubmit) {
+            pendingSubmit = true
+            verifTries = 0
+            handler.removeCallbacks(verifRunnable)
+            handler.postDelayed(verifRunnable, 5000) // si la page ne se recharge pas (envoi en arrière-plan)
+        }
     }
 
     private fun verifierEnvoi() {
         if (!pendingSubmit || isDestroyed) return
+        // Page encore en chargement : on attend un peu (jusqu'à ~20 s).
+        if (pageLoading && verifTries < 12) {
+            verifTries++
+            handler.postDelayed(verifRunnable, 1500)
+            return
+        }
         web.evaluateJavascript(VERIF_JS, object : ValueCallback<String> {
             override fun onReceiveValue(value: String?) {
+                if (!pendingSubmit || isDestroyed) return
                 var form = true
                 var ok = false
+                var ready = true
                 try {
                     val o = JSONObject(value ?: "{}")
                     form = o.optBoolean("form", true)
                     ok = o.optBoolean("ok", false)
+                    ready = o.optBoolean("ready", true)
                 } catch (e: Exception) {
                 }
-                if (!form || ok) {
+                if (!ready && verifTries < 12) {
+                    verifTries++
+                    handler.postDelayed(verifRunnable, 1500)
+                    return
+                }
+                val decision = EnvoiLogique.decider(form, ok, postSeen, web.url ?: "")
+                if (decision == EnvoiLogique.ENVOYEE) {
                     marquerEnvoye()
-                } else {
-                    pendingSubmit = false
+                    return
+                }
+                pendingSubmit = false
+                if (decision == EnvoiLogique.REFUSEE) {
+                    postSeen = false
+                    sendingShown = false
                     afficherEtat(getString(R.string.st_notsent_title), getString(R.string.st_notsent_detail), StatusBadge.WARN)
                     Motion.hapticNo(card)
                 }
+                // Notre formulaire est affiché : on complète discrètement ce que la page aurait vidé.
+                val u = web.url ?: ""
+                val notreFormulaire = u.contains("ticket_form_id=149423") ||
+                    (u.contains("/requests") && !u.contains("/requests/new"))
+                if (form && notreFormulaire) injecter(true)
+                // Sinon : simple navigation ailleurs, on ne change rien.
             }
         })
     }
 
     private fun marquerEnvoye() {
         pendingSubmit = false
+        postSeen = false
+        sendingShown = false
+        silentFill = false
         sentCurrent = true
         sentCount++
         if (historyId == -1L) historyId = Store.ajouter(this, ami())
@@ -340,6 +428,11 @@ class FormActivity : Activity() {
         setResult(RESULT_OK)
         Motion.hapticOk(card)
         Motion.pop(card, 0.025f)
+        afficherEnvoye()
+    }
+
+    /** Affiche l'état « envoyée » de l'ami en cours (et la suite de la série). */
+    private fun afficherEnvoye() {
         val dernier = index >= amis.size - 1
         when {
             !dernier -> afficherEtat(
@@ -348,7 +441,7 @@ class FormActivity : Activity() {
             )
             amis.size > 1 -> afficherEtat(
                 getString(R.string.st_all_title),
-                getString(R.string.st_all_detail, sentCount), StatusBadge.DONE
+                resources.getQuantityString(R.plurals.st_all_detail, sentCount, sentCount), StatusBadge.DONE
             )
             else -> afficherEtat(getString(R.string.st_sent_title), getString(R.string.st_sent_detail, ami()), StatusBadge.DONE)
         }
@@ -364,6 +457,10 @@ class FormActivity : Activity() {
         index++
         sentCurrent = false
         pendingSubmit = false
+        filled = false
+        postSeen = false
+        sendingShown = false
+        silentFill = false
         historyId = -1L
         celebrated = false
         handler.removeCallbacks(verifRunnable)
@@ -410,6 +507,8 @@ class FormActivity : Activity() {
     private fun afficherResultat(json: String) {
         if (sentCurrent || pendingSubmit || isDestroyed) return
         val res = try { JSONObject(json) } catch (e: Exception) { return }
+        val discret = silentFill
+        silentFill = false
         val champs = res.optJSONObject("fields") ?: JSONObject()
         val noms = linkedMapOf(
             "email" to R.string.f_email,
@@ -427,10 +526,12 @@ class FormActivity : Activity() {
             }
         }
         if (manquants.isEmpty()) {
+            filled = true
+            if (historyId == -1L) historyId = Store.ajouter(this, ami())
+            if (discret) return // on garde le message « Pas encore envoyé »
             val detail = if (amis.size > 1) getString(R.string.st_done_detail_multi, ami(), index + 1, amis.size)
             else getString(R.string.st_done_detail, ami())
             afficherEtat(getString(R.string.st_done_title), detail, StatusBadge.DONE)
-            if (historyId == -1L) historyId = Store.ajouter(this, ami())
             if (!celebrated) {
                 celebrated = true
                 Motion.hapticOk(card)

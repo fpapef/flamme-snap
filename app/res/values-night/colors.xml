@@ -18,4 +18,7 @@
     <color name="row_pressed">#2C2C2E</color>
     <color name="segment_track">#1C1C1E</color>
     <color name="segment_thumb">#636366</color>
+    <color name="clear_circle">#636366</color>
+    <color name="clear_x">#1C1C1E</color>
+    <color name="warn_text">#FF9F0A</color>
 </resources>
