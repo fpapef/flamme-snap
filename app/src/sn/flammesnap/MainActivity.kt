@@ -15,6 +15,7 @@ import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.ImageView
 import android.widget.EditText
+import android.widget.FrameLayout
 import android.widget.LinearLayout
 import android.widget.TextView
 import android.widget.Toast
@@ -32,6 +33,8 @@ class MainActivity : Activity() {
     private lateinit var continueButton: TextView
     private lateinit var hint: TextView
     private lateinit var summary: TextView
+    private lateinit var profileRow: View
+    private lateinit var avatarBox: FrameLayout
     private lateinit var recentsBlock: View
     private lateinit var recents: LinearLayout
     private lateinit var details: View
@@ -54,6 +57,10 @@ class MainActivity : Activity() {
         continueButton = findViewById(R.id.continue_button)
         hint = findViewById(R.id.hint)
         summary = findViewById(R.id.profile_summary)
+        profileRow = findViewById(R.id.profile_row)
+        avatarBox = findViewById(R.id.profile_avatar_box)
+        profileRow.setOnClickListener { startActivity(Intent(this, SettingsActivity::class.java)) }
+        Motion.highlight(profileRow)
         recentsBlock = findViewById(R.id.recents_block)
         recents = findViewById(R.id.recents)
         details = findViewById(R.id.details)
@@ -124,7 +131,7 @@ class MainActivity : Activity() {
             flame.ignite()
             Motion.reveal(listOf<View>(findViewById(R.id.title), findViewById(R.id.subtitle)), 260, 110, 14f, 28f)
             Motion.reveal(
-                listOf<View>(findViewById(R.id.input_box), recentsBlock, detailsToggle, continueButton, summary),
+                listOf<View>(findViewById(R.id.input_box), recentsBlock, detailsToggle, continueButton, profileRow),
                 560, 60, 18f, 0f
             )
             Motion.reveal(listOf(settings, history), 700, 0, 0f, 0f)
@@ -293,7 +300,7 @@ class MainActivity : Activity() {
 
     private fun majRecents() {
         recents.removeAllViews()
-        val list = Store.recents(this)
+        val list = Store.recents(this, Prefs.actifId(this))
         recentsBlock.visibility = if (list.isEmpty()) View.GONE else View.VISIBLE
         val d = resources.displayMetrics.density
         for (nom in list) {
@@ -310,7 +317,7 @@ class MainActivity : Activity() {
             chip.setOnLongClickListener {
                 Motion.hapticOk(chip)
                 Sheet(this).title(nom).addDestructive(getString(R.string.remove_recent)) {
-                    Store.removeRecent(this, nom)
+                    Store.removeRecent(this, Prefs.actifId(this), nom)
                     majRecents()
                 }.show()
                 true
@@ -338,11 +345,26 @@ class MainActivity : Activity() {
 
     // ---------- résumé ----------
 
+    private fun nomAffiche(pr: Profil): String =
+        if (pr.nom.isBlank()) getString(R.string.profile_unnamed) else pr.nom
+
+    /** Pastille + nom du profil actif, sous le bouton. */
     private fun majResume() {
-        val n = Store.nbEnvoyees(this)
-        var s = getString(R.string.profile_summary, Prefs.lire(this).pseudo)
-        if (n > 0) s += resources.getQuantityString(R.plurals.summary_sent, n, n)
-        summary.text = s
+        val pr = Prefs.actif(this)
+        avatarBox.removeAllViews()
+        val d = resources.displayMetrics.density
+        avatarBox.addView(Avatar.creer(this, pr, 22f), FrameLayout.LayoutParams((22 * d).toInt(), (22 * d).toInt()))
+        if (pr.complet) {
+            val n = Store.nbEnvoyees(this, pr.id)
+            var s = getString(R.string.profile_summary, nomAffiche(pr), pr.pseudo)
+            if (n > 0) s += resources.getQuantityString(R.plurals.summary_sent, n, n)
+            summary.text = s
+            summary.setTextColor(getColor(R.color.secondary))
+        } else {
+            summary.text = getString(R.string.profile_summary_incomplete, nomAffiche(pr))
+            summary.setTextColor(getColor(R.color.warn_text))
+        }
+        profileRow.contentDescription = getString(R.string.profile_a11y, nomAffiche(pr))
     }
 
     // ---------- continuer ----------
@@ -358,15 +380,31 @@ class MainActivity : Activity() {
             flame.dim()
             return
         }
+        val pr = Prefs.actif(this)
+        if (!pr.complet) {
+            // Sans pseudo ni e-mail, le formulaire ne peut pas être rempli : on complète d'abord.
+            Motion.shake(profileRow)
+            Motion.hapticNo(profileRow)
+            montrerAide(getString(R.string.complete_profile_hint, nomAffiche(pr)), R.color.warn_text, true)
+            profileRow.postDelayed({
+                if (!isFinishing) {
+                    val i = Intent(this, SettingsActivity::class.java)
+                    i.putExtra(SettingsActivity.EXTRA_COMPLETE, true)
+                    startActivity(i)
+                }
+            }, if (Motion.animationsOn()) 700L else 0L)
+            return
+        }
         navigating = true
         val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
         imm.hideSoftInputFromWindow(friendInput.windowToken, 0)
         friendInput.clearFocus()
-        Store.addRecents(this, noms)
+        Store.addRecents(this, pr.id, noms)
         Motion.hapticOk(continueButton)
         flame.boost()
         val intent = Intent(this, FormActivity::class.java)
         intent.putStringArrayListExtra(FormActivity.EXTRA_FRIENDS, noms)
+        intent.putExtra(FormActivity.EXTRA_PROFILE, pr.id)
         intent.putExtra(FormActivity.EXTRA_DAYS, jours())
         intent.putExtra(FormActivity.EXTRA_LOST, lost.selected)
         // La flamme s'embrase un court instant, puis l'écran suivant glisse.

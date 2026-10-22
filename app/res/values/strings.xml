@@ -41,13 +41,31 @@
     <string name="preview_friend_en">your friend</string>
     <string name="lost_a11y">Disparue : %1$s</string>
     <string name="lost_a11y_none">Disparue : non précisé</string>
-    <string name="profile_summary">Au nom de %1$s</string>
+    <string name="profile_summary">%1$s · %2$s</string>
+    <string name="profile_summary_incomplete">%1$s · profil incomplet</string>
+    <string name="complete_profile_hint">Complète le profil « %1$s » : pseudo et e-mail.</string>
+    <string name="profile_a11y">Profil actif : %1$s. Ouvrir les réglages.</string>
     <plurals name="summary_sent">
         <item quantity="one">" · %1$d demande envoyée"</item>
         <item quantity="other">" · %1$d demandes envoyées"</item>
     </plurals>
 
     <!-- Réglages -->
+    <string name="section_profiles">Profils</string>
+    <string name="profiles_note">Touche un profil pour l\'utiliser. Chaque profil garde ses infos, son message, ses amis récents et son historique.</string>
+    <string name="profile_header">Profil « %1$s »</string>
+    <string name="profile_me">Moi</string>
+    <string name="profile_new_name">Profil %1$d</string>
+    <string name="profile_unnamed">Sans nom</string>
+    <string name="profile_incomplete">Profil incomplet</string>
+    <string name="add_profile">Ajouter un profil</string>
+    <string name="use_profile">Utiliser ce profil</string>
+    <string name="delete_profile">Supprimer ce profil</string>
+    <string name="delete_profile_confirm">Le profil « %1$s » et son historique seront supprimés de ce téléphone.</string>
+    <string name="delete_profile_action">Supprimer « %1$s »</string>
+    <string name="profile_active_a11y">%1$s, profil actif</string>
+    <string name="lbl_name">Nom</string>
+    <string name="hint_name">Moi, Papa, Awa…</string>
     <string name="section_account">Ton compte</string>
     <string name="section_message">Message envoyé à Snapchat</string>
     <string name="lbl_username">Pseudo</string>
@@ -67,7 +85,7 @@
 
     <!-- Demandes -->
     <string name="hist_empty">Aucune demande pour l\'instant.</string>
-    <string name="hist_empty_detail">Tes demandes de restauration apparaîtront ici.</string>
+    <string name="hist_empty_detail">Les demandes du profil « %1$s » apparaîtront ici.</string>
     <string name="today">Aujourd\'hui</string>
     <string name="yesterday">Hier</string>
     <string name="sent_at">Envoyée à %1$s</string>
@@ -84,7 +102,7 @@
     <string name="mark_sent">Marquer comme envoyée</string>
     <string name="delete">Supprimer</string>
     <string name="clear_history">Effacer l\'historique</string>
-    <string name="clear_confirm">L\'historique sera effacé de ce téléphone.</string>
+    <string name="clear_confirm">L\'historique du profil « %1$s » sera effacé de ce téléphone.</string>
 
     <!-- Formulaire -->
     <string name="form_title">Formulaire</string>

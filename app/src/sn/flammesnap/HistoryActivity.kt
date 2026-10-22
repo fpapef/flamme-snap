@@ -59,10 +59,13 @@ class HistoryActivity : Activity() {
 
     private fun construire(animer: Boolean) {
         content.removeAllViews()
-        val data = Store.historique(this)
+        val pr = Prefs.actif(this)
+        val pid = pr.id
+        val nom = if (pr.nom.isBlank()) getString(R.string.profile_unnamed) else pr.nom
+        val data = Store.historique(this, pid)
         if (data.isEmpty()) {
-            summary.text = ""
-            content.addView(etatVide())
+            summary.text = nom
+            content.addView(etatVide(nom))
             Typo.apply(content)
             if (animer) Motion.reveal(listOf<View>(content), 120, 0, 12f, 0f)
             return
@@ -72,7 +75,7 @@ class HistoryActivity : Activity() {
         val nonConf = data.size - envoyees
         var resume = resources.getQuantityString(R.plurals.hist_sent, envoyees, envoyees)
         if (nonConf > 0) resume += " · " + resources.getQuantityString(R.plurals.hist_unconfirmed, nonConf, nonConf)
-        summary.text = resume
+        summary.text = "$nom · $resume"
 
         val jour = SimpleDateFormat("yyyyMMdd", Locale.FRANCE)
         val heure = SimpleDateFormat("HH:mm", Locale.FRANCE)
@@ -103,7 +106,7 @@ class HistoryActivity : Activity() {
             } else {
                 groupe.addView(filet())
             }
-            groupe.addView(ligne(d, heure))
+            groupe.addView(ligne(d, heure, pid))
         }
 
         // Effacer l'historique
@@ -118,9 +121,9 @@ class HistoryActivity : Activity() {
         clear.setPadding(px(16f), 0, px(16f), 0)
         clear.setBackgroundResource(R.drawable.bg_row)
         clear.setOnClickListener {
-            Sheet(this).message(getString(R.string.clear_confirm))
+            Sheet(this).message(getString(R.string.clear_confirm, nom))
                 .addDestructive(getString(R.string.clear_history)) {
-                    Store.effacer(this)
+                    Store.effacer(this, pid)
                     construire(true)
                 }.show()
         }
@@ -135,7 +138,7 @@ class HistoryActivity : Activity() {
         }
     }
 
-    private fun ligne(d: Demande, heure: SimpleDateFormat): View {
+    private fun ligne(d: Demande, heure: SimpleDateFormat, pid: Long): View {
         val row = LinearLayout(this)
         row.orientation = LinearLayout.HORIZONTAL
         row.gravity = Gravity.CENTER_VERTICAL
@@ -173,34 +176,35 @@ class HistoryActivity : Activity() {
         chevron.importantForAccessibility = View.IMPORTANT_FOR_ACCESSIBILITY_NO
         row.addView(chevron)
 
-        row.setOnClickListener { actions(d) }
+        row.setOnClickListener { actions(d, pid) }
         return row
     }
 
-    private fun actions(d: Demande) {
+    private fun actions(d: Demande, pid: Long) {
         val s = Sheet(this).title(d.ami)
         s.add(getString(R.string.redo)) {
             val i = Intent(this, FormActivity::class.java)
             val l = ArrayList<String>()
             l.add(d.ami)
             i.putStringArrayListExtra(FormActivity.EXTRA_FRIENDS, l)
+            i.putExtra(FormActivity.EXTRA_PROFILE, pid)
             startActivity(i)
         }
         if (!d.envoyee) {
             s.add(getString(R.string.mark_sent)) {
-                Store.marquerEnvoyee(this, d.id)
+                Store.marquerEnvoyee(this, pid, d.id)
                 Motion.hapticOk(content)
                 construire(false)
             }
         }
         s.addDestructive(getString(R.string.delete)) {
-            Store.supprimer(this, d.id)
+            Store.supprimer(this, pid, d.id)
             construire(false)
         }
         s.show()
     }
 
-    private fun etatVide(): View {
+    private fun etatVide(nom: String): View {
         val col = LinearLayout(this)
         col.orientation = LinearLayout.VERTICAL
         col.gravity = Gravity.CENTER_HORIZONTAL
@@ -218,7 +222,7 @@ class HistoryActivity : Activity() {
         t.setPadding(0, px(16f), 0, 0)
         col.addView(t)
         val s = TextView(this)
-        s.text = getString(R.string.hist_empty_detail)
+        s.text = getString(R.string.hist_empty_detail, nom)
         s.textSize = 15f
         s.gravity = Gravity.CENTER
         s.setTextColor(getColor(R.color.secondary))

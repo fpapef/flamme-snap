@@ -40,6 +40,7 @@ class FormActivity : Activity() {
         const val EXTRA_FRIENDS = "friends"
         const val EXTRA_DAYS = "days"
         const val EXTRA_LOST = "lost"
+        const val EXTRA_PROFILE = "profile"
         const val FORM_URL =
             "https://help.snapchat.com/hc/fr-fr/requests/new?co=true&ticket_form_id=149423"
         private const val REQ_FILE = 42
@@ -75,6 +76,7 @@ class FormActivity : Activity() {
 
     private val handler = Handler(Looper.getMainLooper())
     private var amis = ArrayList<String>()
+    private var profilId = -1L
     private var index = 0
     private var jours = 0
     private var decalage = -1
@@ -109,6 +111,9 @@ class FormActivity : Activity() {
             finish()
             return
         }
+        // La série reste liée au profil choisi au départ, même si on change de profil entre-temps.
+        profilId = intent.getLongExtra(EXTRA_PROFILE, -1L)
+        if (Prefs.get(this, profilId) == null) profilId = Prefs.actifId(this)
         jours = intent.getIntExtra(EXTRA_DAYS, 0)
         decalage = intent.getIntExtra(EXTRA_LOST, -1)
         // Écran recréé (mode sombre, langue du téléphone…) : on garde sa place dans la série.
@@ -272,6 +277,8 @@ class FormActivity : Activity() {
 
     private fun ami(): String = amis[index]
 
+    private fun profil(): Profil = Prefs.get(this, profilId) ?: Prefs.actif(this)
+
     private fun estUnePageDeDemande(url: String?): Boolean =
         url != null && url.contains("help.snapchat.com") && url.contains("/requests")
 
@@ -303,7 +310,7 @@ class FormActivity : Activity() {
 
     /** Envoie le script de remplissage avec les valeurs du profil et de l'ami en cours. */
     private fun injecter(silencieux: Boolean = false) {
-        val p = Prefs.lire(this)
+        val p = profil()
         val cfg = JSONObject()
         cfg.put("email", p.email)
         cfg.put("username", p.pseudo)
@@ -423,8 +430,8 @@ class FormActivity : Activity() {
         silentFill = false
         sentCurrent = true
         sentCount++
-        if (historyId == -1L) historyId = Store.ajouter(this, ami())
-        Store.marquerEnvoyee(this, historyId)
+        if (historyId == -1L) historyId = Store.ajouter(this, profilId, ami())
+        Store.marquerEnvoyee(this, profilId, historyId)
         setResult(RESULT_OK)
         Motion.hapticOk(card)
         Motion.pop(card, 0.025f)
@@ -527,7 +534,7 @@ class FormActivity : Activity() {
         }
         if (manquants.isEmpty()) {
             filled = true
-            if (historyId == -1L) historyId = Store.ajouter(this, ami())
+            if (historyId == -1L) historyId = Store.ajouter(this, profilId, ami())
             if (discret) return // on garde le message « Pas encore envoyé »
             val detail = if (amis.size > 1) getString(R.string.st_done_detail_multi, ami(), index + 1, amis.size)
             else getString(R.string.st_done_detail, ami())
@@ -551,7 +558,7 @@ class FormActivity : Activity() {
 
     /** Kit de secours : ouvre le formulaire dans le navigateur et copie chaque info d'un geste. */
     private fun kitNavigateur() {
-        val p = Prefs.lire(this)
+        val p = profil()
         val a = ami()
         Sheet(this)
             .title(getString(R.string.kit_title))

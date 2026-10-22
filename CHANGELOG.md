@@ -1,5 +1,13 @@
 # Journal des versions
 
+## 1.5 — 22 octobre 2026
+
+- Profils : un pour toi et autant que tu veux pour d'autres personnes, chacun avec sa pastille de couleur.
+- Chaque profil a ses infos, son message, ses amis récents et son historique.
+- Tout se gère dans Réglages : ajouter, changer (✓), renommer, supprimer.
+- L'accueil affiche le profil en cours ; un profil incomplet mène directement au champ manquant.
+- Les données des versions précédentes deviennent le profil « Moi ».
+
 ## 1.4 — 21 octobre 2026
 
 - Bouton ⊗ dans le champ pour tout effacer.
