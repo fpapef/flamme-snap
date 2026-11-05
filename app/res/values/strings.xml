@@ -25,22 +25,10 @@
     <string name="share_none">Aucun pseudo trouvé dans ce partage.</string>
     <string name="recents">Récents</string>
     <string name="remove_recent">Retirer des récents</string>
-    <string name="details_toggle">Détails facultatifs</string>
-    <string name="days_hint">Durée de la flamme, en jours</string>
-    <string name="lost">Disparue</string>
     <string name="sc_new_short">Restaurer</string>
     <string name="sc_new_long">Nouvelle demande</string>
     <string name="sc_history_short">Demandes</string>
     <string name="sc_history_long">Mes demandes</string>
-    <string name="lost_today">Aujourd\'hui</string>
-    <string name="lost_yesterday">Hier</string>
-    <string name="lost_before">Avant-hier</string>
-    <string name="details_note">Ajouté à la fin du message envoyé à Snapchat.</string>
-    <string name="details_preview">Ajouté au message : « %1$s »</string>
-    <string name="preview_friend">ton ami</string>
-    <string name="preview_friend_en">your friend</string>
-    <string name="lost_a11y">Disparue : %1$s</string>
-    <string name="lost_a11y_none">Disparue : non précisé</string>
     <string name="profile_summary">%1$s · %2$s</string>
     <string name="profile_summary_incomplete">%1$s · profil incomplet</string>
     <string name="complete_profile_hint">Complète le profil « %1$s » : pseudo et e-mail.</string>
@@ -49,6 +37,56 @@
         <item quantity="one">" · %1$d demande envoyée"</item>
         <item quantity="other">" · %1$d demandes envoyées"</item>
     </plurals>
+
+    <!-- Mes amis -->
+    <string name="home_friends">Mes amis</string>
+    <string name="home_friends_empty">" · ajoute-les"</string>
+    <string name="home_friends_count">" · %1$d"</string>
+    <string name="friends_title">Mes amis</string>
+    <plurals name="friends_count">
+        <item quantity="one">%1$d ami</item>
+        <item quantity="other">%1$d amis</item>
+    </plurals>
+    <string name="friends_subtitle">%1$s · profil %2$s</string>
+    <string name="friends_search">Rechercher</string>
+    <string name="friends_add_hint">Ajouter un pseudo</string>
+    <string name="friends_add">Ajouter</string>
+    <string name="friends_paste">Coller une liste</string>
+    <string name="friends_import">Importer depuis Snapchat</string>
+    <string name="friends_import_note">Pour ajouter tous tes amis d\'un coup : dans Snapchat, ouvre Paramètres › Mes données, coche « Exporter les fichiers JSON » (garde seulement « Amis » pour que ce soit plus rapide) et envoie la demande. Quand l\'e-mail de Snapchat arrive, télécharge le fichier et importe-le ici.</string>
+    <string name="friends_section_hint">%1$s · touche pour sélectionner</string>
+    <string name="friends_results">Résultats</string>
+    <string name="friends_empty_title">Aucun ami pour l\'instant</string>
+    <string name="friends_empty_detail">Ajoute un pseudo, colle une liste, ou importe tes données Snapchat pour avoir tous tes amis d\'un coup.</string>
+    <string name="friends_none_found">Aucun résultat</string>
+    <string name="friends_none_found_detail">Aucun ami ne correspond à « %1$s ».</string>
+    <plurals name="restore_n">
+        <item quantity="one">Restaurer %1$d flamme</item>
+        <item quantity="other">Restaurer %1$d flammes</item>
+    </plurals>
+    <plurals name="friends_added">
+        <item quantity="one">✓ %1$d ami ajouté.</item>
+        <item quantity="other">✓ %1$d amis ajoutés.</item>
+    </plurals>
+    <string name="friends_already">Déjà dans ta liste.</string>
+    <plurals name="import_done">
+        <item quantity="one">✓ %1$d nouvel ami ajouté sur %2$d dans le fichier.</item>
+        <item quantity="other">✓ %1$d nouveaux amis ajoutés sur %2$d dans le fichier.</item>
+    </plurals>
+    <string name="import_reading">Lecture du fichier…</string>
+    <string name="import_no_list">Ce fichier ne contient pas ta liste d\'amis au format JSON. Refais la demande dans Snapchat en choisissant l\'export en JSON.</string>
+    <string name="import_unreadable">Fichier non reconnu. Choisis le fichier ZIP envoyé par Snapchat, ou le fichier friends.json qu\'il contient.</string>
+    <string name="import_empty">Aucun ami trouvé dans ce fichier.</string>
+    <string name="row_restore">Restaurer la flamme</string>
+    <string name="row_copy">Copier le pseudo</string>
+    <string name="row_remove">Retirer de la liste</string>
+    <string name="clear_list">Effacer la liste</string>
+    <plurals name="clear_list_confirm">
+        <item quantity="one">%1$d ami du profil « %2$s » sera retiré de la liste.</item>
+        <item quantity="other">Les %1$d amis du profil « %2$s » seront retirés de la liste.</item>
+    </plurals>
+    <string name="friend_selected_a11y">%1$s, sélectionné</string>
+    <string name="share_added">Ajouté à tes amis.</string>
 
     <!-- Réglages -->
     <string name="section_profiles">Profils</string>

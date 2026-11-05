@@ -37,12 +37,9 @@ class MainActivity : Activity() {
     private lateinit var avatarBox: FrameLayout
     private lateinit var recentsBlock: View
     private lateinit var recents: LinearLayout
-    private lateinit var details: View
-    private lateinit var detailsChevron: View
-    private lateinit var daysInput: EditText
-    private lateinit var lost: Segmented
     private lateinit var paste: ImageView
-    private lateinit var detailsNote: TextView
+    private lateinit var friendsRow: View
+    private lateinit var friendsCount: TextView
     private var navigating = false
     private var hintIsError = false
     private var modeEffacer = false
@@ -63,15 +60,11 @@ class MainActivity : Activity() {
         Motion.highlight(profileRow)
         recentsBlock = findViewById(R.id.recents_block)
         recents = findViewById(R.id.recents)
-        details = findViewById(R.id.details)
-        detailsChevron = findViewById(R.id.details_chevron)
-        daysInput = findViewById(R.id.days_input)
-        lost = findViewById(R.id.lost_segmented)
         paste = findViewById(R.id.paste_button)
-        detailsNote = findViewById(R.id.details_note)
+        friendsRow = findViewById(R.id.friends_row)
+        friendsCount = findViewById(R.id.friends_count)
         val settings = findViewById<View>(R.id.settings_button)
         val history = findViewById<View>(R.id.history_button)
-        val detailsToggle = findViewById<View>(R.id.details_toggle)
 
         // Les blocs qui apparaissent / disparaissent glissent en douceur.
         findViewById<ViewGroup>(R.id.column).layoutTransition?.enableTransitionType(LayoutTransition.CHANGING)
@@ -80,28 +73,12 @@ class MainActivity : Activity() {
         settings.setOnClickListener { startActivity(Intent(this, SettingsActivity::class.java)) }
         history.setOnClickListener { startActivity(Intent(this, HistoryActivity::class.java)) }
         paste.setOnClickListener { if (modeEffacer) effacer() else coller() }
-        detailsToggle.setOnClickListener { basculerDetails() }
+        friendsRow.setOnClickListener { startActivity(Intent(this, FriendsActivity::class.java)) }
         Motion.pressScale(continueButton)
         Motion.highlight(settings)
         Motion.highlight(history)
         Motion.highlight(paste)
-        Motion.highlight(detailsToggle)
-
-        lost.setItems(arrayOf(getString(R.string.lost_today), getString(R.string.lost_yesterday), getString(R.string.lost_before)))
-        lost.allowNone = true
-        lost.contentDescription = getString(R.string.lost_a11y_none)
-        lost.listener = { i ->
-            lost.contentDescription = if (i < 0) getString(R.string.lost_a11y_none)
-            else getString(R.string.lost_a11y, lost.labelAt(i))
-            majApercu()
-        }
-        daysInput.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                majApercu()
-            }
-        })
+        Motion.highlight(friendsRow)
 
         friendInput.setOnEditorActionListener(object : TextView.OnEditorActionListener {
             override fun onEditorAction(v: TextView?, actionId: Int, event: KeyEvent?): Boolean {
@@ -123,7 +100,6 @@ class MainActivity : Activity() {
             override fun afterTextChanged(s: Editable?) {
                 majAide()
                 majBoutonChamp()
-                majApercu()
             }
         })
 
@@ -131,7 +107,7 @@ class MainActivity : Activity() {
             flame.ignite()
             Motion.reveal(listOf<View>(findViewById(R.id.title), findViewById(R.id.subtitle)), 260, 110, 14f, 28f)
             Motion.reveal(
-                listOf<View>(findViewById(R.id.input_box), recentsBlock, detailsToggle, continueButton, profileRow),
+                listOf<View>(findViewById(R.id.input_box), recentsBlock, friendsRow, continueButton, profileRow),
                 560, 60, 18f, 0f
             )
             Motion.reveal(listOf(settings, history), 700, 0, 0f, 0f)
@@ -192,24 +168,12 @@ class MainActivity : Activity() {
         paste.performHapticFeedback(android.view.HapticFeedbackConstants.KEYBOARD_TAP)
     }
 
-    // ---------- aperçu de la phrase « Détails » ----------
-
-    private fun majApercu() {
-        val noms = Pseudos.depuisSaisie(friendInput.text.toString())
-        val langue = Prefs.langue(this)
-        val ami = if (noms.isNotEmpty()) noms[0]
-        else getString(if (langue == "en") R.string.preview_friend_en else R.string.preview_friend)
-        val phrase = Pseudos.details(langue, ami, jours(), lost.selected, System.currentTimeMillis()).trim()
-        detailsNote.text = if (phrase.isEmpty()) getString(R.string.details_note)
-        else getString(R.string.details_preview, phrase)
-    }
-
     override fun onResume() {
         super.onResume()
         navigating = false
         majResume()
         majRecents()
-        majApercu()
+        majAmis()
     }
 
     // ---------- partage depuis Snapchat / presse-papiers ----------
@@ -222,6 +186,12 @@ class MainActivity : Activity() {
         if (noms.isEmpty()) {
             Toast.makeText(this, R.string.share_none, Toast.LENGTH_LONG).show()
             return
+        }
+        val valides = ArrayList<Ami>()
+        for (n in noms) if (Pseudos.estValide(n)) valides.add(Ami(n, ""))
+        if (Store.ajouterAmis(this, Prefs.actifId(this), valides) > 0) {
+            Toast.makeText(this, R.string.share_added, Toast.LENGTH_SHORT).show()
+            majAmis()
         }
         ajouterNoms(noms)
     }
@@ -327,20 +297,13 @@ class MainActivity : Activity() {
         Typo.apply(recents)
     }
 
-    // ---------- détails facultatifs ----------
+    // ---------- mes amis ----------
 
-    private fun basculerDetails() {
-        val ouvrir = details.visibility != View.VISIBLE
-        details.visibility = if (ouvrir) View.VISIBLE else View.GONE
-        detailsChevron.animate().rotation(if (ouvrir) 90f else 0f).setDuration(300)
-            .setInterpolator(Motion.IOS).start()
-        if (ouvrir) Motion.reveal(listOf(details), 0, 0, 8f, 0f)
-    }
-
-    private fun jours(): Int = try {
-        Integer.parseInt(daysInput.text.toString().trim())
-    } catch (e: Exception) {
-        0
+    private fun majAmis() {
+        val n = Store.amis(this, Prefs.actifId(this)).size
+        friendsCount.text = if (n == 0) getString(R.string.home_friends_empty) else getString(R.string.home_friends_count, n)
+        friendsRow.contentDescription = getString(R.string.home_friends) + ", " +
+            if (n == 0) getString(R.string.friends_empty_title) else resources.getQuantityString(R.plurals.friends_count, n, n)
     }
 
     // ---------- résumé ----------
@@ -405,8 +368,6 @@ class MainActivity : Activity() {
         val intent = Intent(this, FormActivity::class.java)
         intent.putStringArrayListExtra(FormActivity.EXTRA_FRIENDS, noms)
         intent.putExtra(FormActivity.EXTRA_PROFILE, pr.id)
-        intent.putExtra(FormActivity.EXTRA_DAYS, jours())
-        intent.putExtra(FormActivity.EXTRA_LOST, lost.selected)
         // La flamme s'embrase un court instant, puis l'écran suivant glisse.
         continueButton.postDelayed({
             if (!isFinishing) startActivityForResult(intent, REQ_FORM)
@@ -419,9 +380,6 @@ class MainActivity : Activity() {
         if (requestCode == REQ_FORM && resultCode == RESULT_OK) {
             // Au moins une demande envoyée : on repart d'une page blanche.
             friendInput.setText("")
-            daysInput.setText("")
-            lost.select(-1, false)
-            if (details.visibility == View.VISIBLE) basculerDetails()
             cacherAide()
         }
     }

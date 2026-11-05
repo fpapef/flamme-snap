@@ -14,16 +14,16 @@ Tu tapes le pseudo de ton ami : l'appli ouvre le formulaire d'assistance de Snap
 - **Détection de l'envoi** : l'appli repère quand ta demande est partie et propose l'ami suivant.
 - **Historique des demandes**, classées par jour (envoyées ou non confirmées), propre à chaque profil.
 - **Amis récents** en un tap, **partage depuis Snapchat** (Partager → Flamme Snap) et bouton **Coller**.
-- **Détails facultatifs** : durée de la flamme et jour de disparition ajoutés au message, avec un aperçu en direct.
+- **Mes amis** : la liste de tous tes amis Snap, propre à chaque profil. Ajoute un pseudo, colle une liste, ou importe d'un coup l'export « Mes données » de Snapchat (fichier ZIP ou `friends.json`). Recherche, sélection de plusieurs amis, puis « Restaurer n flammes ».
 - **Message en français ou en anglais**, et **mode sombre** automatique.
-- **Profils** : un pour toi et autant que tu veux pour d'autres personnes. Chaque profil a ses infos, son message, ses amis récents et son historique. Tout se gère dans Réglages.
+- **Profils** : un pour toi et autant que tu veux pour d'autres personnes. Chaque profil a ses infos, son message, ses amis, ses récents et son historique. Tout se gère dans Réglages.
 - **Actions rapides** sur l'icône (appui long) : « Nouvelle demande » et « Mes demandes ».
 - **Kit navigateur** : si le reCAPTCHA ne s'affiche pas, ouvre le formulaire dans ton navigateur et copie chaque info d'un geste.
 - **Design épuré façon Apple** : police Inter, blanc pur, une seule couleur (celle de la flamme), flamme animée discrète, transitions façon iPhone.
 
 ## Installation
 
-1. Télécharge le fichier `FlammeSnap-1.5.apk` de la dernière version dans [Releases](../../releases).
+1. Télécharge le fichier `FlammeSnap-1.6.apk` de la dernière version dans [Releases](../../releases).
 2. Ouvre-le sur le téléphone et autorise l'installation d'applis de source inconnue si Android le demande.
 3. Au premier lancement, ouvre **Réglages** et complète ton profil : ton nom d'utilisateur Snapchat, ton e-mail et ton numéro avec l'indicatif du pays (par exemple +221).
 
@@ -35,10 +35,22 @@ Android 7 ou plus récent. Chaque nouvelle version s'installe par-dessus la pré
 2. Le formulaire de Snapchat s'ouvre et se remplit tout seul.
 3. Vérifie, coche le reCAPTCHA, puis touche **Envoyer**.
 
+Ou bien ouvre **Mes amis**, touche les amis concernés et **Restaurer n flammes** : une demande par ami, à la suite.
+
+### Importer tous tes amis d'un coup
+
+1. Dans Snapchat : **Paramètres › Mes données**.
+2. Coche **Exporter les fichiers JSON**. Tu peux ne garder que la catégorie **Amis**, c'est plus léger.
+3. Envoie la demande. Snapchat prépare le fichier et t'envoie un e-mail (de quelques heures à quelques jours).
+4. Télécharge le fichier ZIP, puis dans Flamme Snap : **Mes amis › Importer depuis Snapchat**. Tu peux aussi ouvrir le ZIP directement avec Flamme Snap.
+
+L'appli ne lit que la liste d'amis (pseudos et noms affichés) ; le reste du fichier est ignoré et rien ne quitte le téléphone.
+
 ## Versions
 
 | Version | Nouveautés |
 |---|---|
+| [1.6](../../releases/tag/v1.6) | Mes amis : la liste de tous tes amis Snap, import de l'export Snapchat, restauration groupée |
 | [1.5](../../releases/tag/v1.5) | Profils : moi et d'autres personnes, chacun avec son historique |
 | [1.4](../../releases/tag/v1.4) | Bouton ⊗, aperçu des détails, actions rapides sur l'icône, détection d'envoi plus fiable |
 | [1.3](../../releases/tag/v1.3) | Plusieurs amis à la suite, détection de l'envoi, historique, amis récents, mode sombre |
@@ -71,7 +83,7 @@ La clé de signature n'est pas publiée dans ce dépôt : `build.sh` utilise `~/
 
 | Dossier | Contenu |
 |---|---|
-| `app/src` | Code Kotlin des écrans, des profils et de l'historique |
+| `app/src` | Code Kotlin des écrans, des profils, de la liste d'amis, de l'import et de l'historique |
 | `app/assets/fill.js` | Script qui remplit le formulaire dans la page |
 | `app/res` | Écrans, couleurs (clair et sombre), animations, textes |
 | `tools` | Assemblage de l'APK, icônes, installation des outils |

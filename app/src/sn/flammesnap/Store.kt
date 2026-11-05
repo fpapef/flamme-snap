@@ -13,7 +13,10 @@ class Demande(
     var envoyeeLe: Long
 )
 
-/** Historique des demandes et amis récents, propres à chaque profil, sur le téléphone uniquement. */
+/** Un ami Snapchat de la liste « Mes amis » : pseudo, et nom affiché s'il est connu. */
+class Ami(val pseudo: String, val nom: String)
+
+/** Historique, amis récents et liste d'amis, propres à chaque profil, sur le téléphone uniquement. */
 object Store {
     private const val FICHIER = "donnees"
     private const val MAX_HIST = 300
@@ -22,6 +25,7 @@ object Store {
     private fun p(ctx: Context) = ctx.getSharedPreferences(FICHIER, Context.MODE_PRIVATE)
     private fun kHist(profil: Long) = "historique_$profil"
     private fun kRecents(profil: Long) = "recents_$profil"
+    private fun kAmis(profil: Long) = "amis_$profil"
 
     /** Reprend l'historique et les récents d'avant les profils (versions 1.3–1.4). */
     fun migrer(ctx: Context, profil: Long) {
@@ -35,7 +39,7 @@ object Store {
     }
 
     fun supprimerProfil(ctx: Context, profil: Long) {
-        p(ctx).edit().remove(kHist(profil)).remove(kRecents(profil)).apply()
+        p(ctx).edit().remove(kHist(profil)).remove(kRecents(profil)).remove(kAmis(profil)).apply()
     }
 
     // ---------- amis récents ----------
@@ -71,6 +75,73 @@ object Store {
         val out = ArrayList<String>()
         for (c in recents(ctx, profil)) if (!c.equals(nom, ignoreCase = true)) out.add(c)
         saveRecents(ctx, profil, out)
+    }
+
+    // ---------- liste d'amis ----------
+
+    /** Liste d'amis du profil, triée par nom (ou pseudo). */
+    fun amis(ctx: Context, profil: Long): ArrayList<Ami> {
+        val out = ArrayList<Ami>()
+        try {
+            val a = JSONArray(p(ctx).getString(kAmis(profil), "[]"))
+            for (i in 0 until a.length()) {
+                val o = a.getJSONObject(i)
+                out.add(Ami(o.optString("u"), o.optString("n")))
+            }
+        } catch (e: Exception) {
+        }
+        return out
+    }
+
+    private fun saveAmis(ctx: Context, profil: Long, list: List<Ami>) {
+        val tri = ArrayList(list)
+        tri.sortWith(object : Comparator<Ami> {
+            override fun compare(a: Ami, b: Ami): Int = cleTri(a).compareTo(cleTri(b))
+        })
+        val a = JSONArray()
+        for (x in tri) {
+            val o = JSONObject()
+            o.put("u", x.pseudo)
+            if (x.nom.isNotBlank()) o.put("n", x.nom)
+            a.put(o)
+        }
+        p(ctx).edit().putString(kAmis(profil), a.toString()).apply()
+    }
+
+    fun cleTri(a: Ami): String = (if (a.nom.isNotBlank()) a.nom else a.pseudo).lowercase()
+
+    /** Ajoute des amis (sans doublon). Un nom connu complète un ami déjà présent. Renvoie le nombre de nouveaux. */
+    fun ajouterAmis(ctx: Context, profil: Long, nouveaux: List<Ami>): Int {
+        val list = amis(ctx, profil)
+        val index = HashMap<String, Int>()
+        for (i in list.indices) index[list[i].pseudo.lowercase()] = i
+        var ajoutes = 0
+        for (n in nouveaux) {
+            if (n.pseudo.isBlank()) continue
+            val cle = n.pseudo.lowercase()
+            val i = index[cle]
+            if (i == null) {
+                index[cle] = list.size
+                list.add(n)
+                ajoutes++
+            } else if (list[i].nom.isBlank() && n.nom.isNotBlank()) {
+                list[i] = Ami(list[i].pseudo, n.nom)
+            }
+        }
+        saveAmis(ctx, profil, list)
+        return ajoutes
+    }
+
+    fun supprimerAmis(ctx: Context, profil: Long, pseudos: Collection<String>) {
+        val cles = HashSet<String>()
+        for (x in pseudos) cles.add(x.lowercase())
+        val out = ArrayList<Ami>()
+        for (a in amis(ctx, profil)) if (!cles.contains(a.pseudo.lowercase())) out.add(a)
+        saveAmis(ctx, profil, out)
+    }
+
+    fun effacerAmis(ctx: Context, profil: Long) {
+        p(ctx).edit().remove(kAmis(profil)).apply()
     }
 
     // ---------- historique ----------

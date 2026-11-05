@@ -1,0 +1,182 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:paddingBottom="4dp">
+
+    <TextView
+        android:id="@+id/large_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:letterSpacing="-0.03"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:tag="display"
+        android:text="@string/friends_title"
+        android:textColor="@color/label"
+        android:textSize="34sp" />
+
+    <TextView
+        android:id="@+id/subtitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="2dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:textColor="@color/secondary"
+        android:textSize="15sp" />
+
+    <!-- Recherche -->
+    <EditText
+        android:id="@+id/search"
+        android:layout_width="match_parent"
+        android:layout_height="38dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="14dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/bg_search"
+        android:drawableStart="@drawable/ic_search"
+        android:drawablePadding="8dp"
+        android:hint="@string/friends_search"
+        android:imeOptions="actionSearch"
+        android:importantForAutofill="no"
+        android:inputType="text|textNoSuggestions"
+        android:paddingStart="10dp"
+        android:paddingEnd="10dp"
+        android:singleLine="true"
+        android:textColor="@color/label"
+        android:textColorHint="@color/secondary"
+        android:textCursorDrawable="@drawable/cursor"
+        android:textSize="17sp" />
+
+    <!-- Ajouter des amis -->
+    <LinearLayout
+        android:id="@+id/actions"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="14dp"
+        android:layout_marginEnd="16dp"
+        android:background="@drawable/bg_card"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/add_box"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal"
+            android:paddingStart="16dp"
+            android:paddingEnd="8dp">
+
+            <EditText
+                android:id="@+id/add_input"
+                android:layout_width="0dp"
+                android:layout_height="match_parent"
+                android:layout_weight="1"
+                android:background="@null"
+                android:hint="@string/friends_add_hint"
+                android:imeOptions="actionDone"
+                android:importantForAutofill="no"
+                android:inputType="text|textNoSuggestions"
+                android:singleLine="true"
+                android:textColor="@color/label"
+                android:textColorHint="@color/tertiary"
+                android:textCursorDrawable="@drawable/cursor"
+                android:textSize="17sp" />
+
+            <ImageView
+                android:id="@+id/add_button"
+                android:layout_width="44dp"
+                android:layout_height="44dp"
+                android:clickable="true"
+                android:contentDescription="@string/friends_add"
+                android:focusable="true"
+                android:padding="11dp"
+                android:src="@drawable/ic_plus" />
+        </LinearLayout>
+
+        <View
+            style="@style/Hairline"
+            android:layout_marginStart="16dp" />
+
+        <TextView
+            android:id="@+id/paste_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="52dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:background="@drawable/bg_row"
+            android:clickable="true"
+            android:drawableStart="@drawable/ic_paste_tint"
+            android:drawablePadding="12dp"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:paddingStart="14dp"
+            android:paddingEnd="16dp"
+            android:text="@string/friends_paste"
+            android:textColor="@color/tint"
+            android:textSize="17sp" />
+
+        <View
+            style="@style/Hairline"
+            android:layout_marginStart="16dp" />
+
+        <TextView
+            android:id="@+id/import_row"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:minHeight="52dp"
+            android:paddingTop="10dp"
+            android:paddingBottom="10dp"
+            android:background="@drawable/bg_row"
+            android:clickable="true"
+            android:drawableStart="@drawable/ic_import"
+            android:drawablePadding="12dp"
+            android:focusable="true"
+            android:gravity="center_vertical"
+            android:paddingStart="14dp"
+            android:paddingEnd="16dp"
+            android:text="@string/friends_import"
+            android:textColor="@color/tint"
+            android:textSize="17sp" />
+    </LinearLayout>
+
+    <!-- Message après un ajout ou un import -->
+    <TextView
+        android:id="@+id/banner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:lineSpacingExtra="2dp"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp"
+        android:textSize="13sp"
+        android:visibility="gone" />
+
+    <TextView
+        android:id="@+id/import_note"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:lineSpacingExtra="2dp"
+        android:paddingStart="32dp"
+        android:paddingEnd="32dp"
+        android:text="@string/friends_import_note"
+        android:textColor="@color/secondary"
+        android:textSize="13sp" />
+
+    <!-- Titre de la liste -->
+    <TextView
+        android:id="@+id/section"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="26dp"
+        android:layout_marginBottom="4dp"
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:textColor="@color/secondary"
+        android:textSize="13sp" />
+</LinearLayout>

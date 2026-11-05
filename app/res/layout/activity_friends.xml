@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical">
+
+    <!-- Barre de navigation : petit titre quand le grand titre défile, « Annuler » pendant une sélection -->
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="52dp">
+
+        <TextView
+            android:id="@+id/back_button"
+            style="@style/TextAction"
+            android:layout_gravity="start|center_vertical"
+            android:drawableStart="@drawable/ic_chevron_left"
+            android:drawablePadding="6dp"
+            android:paddingStart="12dp"
+            android:paddingEnd="12dp"
+            android:text="@string/back"
+            android:textSize="17sp" />
+
+        <TextView
+            android:id="@+id/nav_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:alpha="0"
+            android:tag="semibold"
+            android:text="@string/friends_title"
+            android:textColor="@color/label"
+            android:textSize="17sp" />
+
+        <TextView
+            android:id="@+id/cancel_button"
+            style="@style/TextAction"
+            android:layout_gravity="end|center_vertical"
+            android:paddingStart="16dp"
+            android:paddingEnd="18dp"
+            android:text="@string/cancel"
+            android:textSize="17sp"
+            android:visibility="gone" />
+
+        <View
+            android:id="@+id/nav_hairline"
+            style="@style/Hairline"
+            android:layout_gravity="bottom"
+            android:alpha="0" />
+    </FrameLayout>
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1">
+
+        <ListView
+            android:id="@+id/list"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:cacheColorHint="@android:color/transparent"
+            android:clipToPadding="false"
+            android:descendantFocusability="afterDescendants"
+            android:divider="@null"
+            android:dividerHeight="0dp"
+            android:listSelector="@android:color/transparent"
+            android:paddingBottom="104dp"
+            android:scrollbarStyle="outsideOverlay" />
+
+        <!-- Bouton « Restaurer (n) » qui monte quand des amis sont sélectionnés -->
+        <FrameLayout
+            android:id="@+id/restore_bar"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="bottom"
+            android:background="@drawable/bg_bar_fade"
+            android:paddingStart="20dp"
+            android:paddingTop="22dp"
+            android:paddingEnd="20dp"
+            android:paddingBottom="18dp"
+            android:visibility="invisible">
+
+            <Button
+                android:id="@+id/restore_button"
+                style="@style/PrimaryButton"
+                android:tag="semibold" />
+        </FrameLayout>
+    </FrameLayout>
+</LinearLayout>

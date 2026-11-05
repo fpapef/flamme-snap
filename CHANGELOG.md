@@ -1,5 +1,16 @@
 # Journal des versions
 
+## 1.6 — 5 novembre 2026
+
+- Nouvel écran « Mes amis » : la liste de tous tes amis Snap, propre à chaque profil. Il remplace les « Détails facultatifs ».
+- Ajoute un pseudo, colle une liste, ou importe d'un coup l'export « Mes données » de Snapchat (ZIP ou friends.json).
+- Le fichier ZIP peut aussi être ouvert ou partagé directement vers Flamme Snap.
+- Recherche (sans tenir compte des accents), noms affichés et pseudos, pastilles de couleur.
+- Touche plusieurs amis, puis « Restaurer n flammes » : une demande par ami, à la suite.
+- Appui long sur un ami : restaurer, copier le pseudo, retirer de la liste.
+- Un profil partagé depuis Snapchat est aussi ajouté à « Mes amis ».
+- Le message envoyé à Snapchat ne contient plus la phrase « Détails » (durée et date).
+
 ## 1.5 — 22 octobre 2026
 
 - Profils : un pour toi et autant que tu veux pour d'autres personnes, chacun avec sa pastille de couleur.

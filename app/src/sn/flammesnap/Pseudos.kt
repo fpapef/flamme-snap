@@ -1,8 +1,5 @@
 package sn.flammesnap
 
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
 import java.util.regex.Pattern
 
 /** Lecture des pseudos : saisie libre, liens de profil Snapchat, textes partagés. */
@@ -70,29 +67,5 @@ object Pseudos {
         if (s.isEmpty()) return
         for (x in list) if (x.equals(s, ignoreCase = true)) return
         list.add(s)
-    }
-
-    /**
-     * Phrase ajoutée à la fin du message : durée de la flamme et date de disparition.
-     * jours <= 0 : non précisé ; decalage < 0 : non précisé (0 = aujourd'hui, 1 = hier…).
-     */
-    fun details(langue: String, ami: String, jours: Int, decalage: Int, maintenant: Long): String {
-        if (jours <= 0 && decalage < 0) return ""
-        val date = if (decalage >= 0) {
-            SimpleDateFormat("dd/MM/yyyy", Locale.FRANCE).format(Date(maintenant - decalage * 86_400_000L))
-        } else ""
-        val sb = StringBuilder()
-        if (langue == "en") {
-            sb.append("\n\nDetails: streak with ").append(ami)
-            if (jours > 0) sb.append(" (").append(jours).append(if (jours == 1) " day)" else " days)")
-            if (date.isNotEmpty()) sb.append(", lost on ").append(date)
-            sb.append(".")
-        } else {
-            sb.append("\n\nDétails : flamme avec ").append(ami)
-            if (jours > 0) sb.append(" (").append(jours).append(if (jours == 1) " jour)" else " jours)")
-            if (date.isNotEmpty()) sb.append(", disparue le ").append(date)
-            sb.append(".")
-        }
-        return sb.toString()
     }
 }

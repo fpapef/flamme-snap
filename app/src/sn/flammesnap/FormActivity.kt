@@ -38,8 +38,6 @@ class FormActivity : Activity() {
 
     companion object {
         const val EXTRA_FRIENDS = "friends"
-        const val EXTRA_DAYS = "days"
-        const val EXTRA_LOST = "lost"
         const val EXTRA_PROFILE = "profile"
         const val FORM_URL =
             "https://help.snapchat.com/hc/fr-fr/requests/new?co=true&ticket_form_id=149423"
@@ -78,8 +76,6 @@ class FormActivity : Activity() {
     private var amis = ArrayList<String>()
     private var profilId = -1L
     private var index = 0
-    private var jours = 0
-    private var decalage = -1
     private var fillScript = ""
     private var loadFailed = false
     private var webShown = false
@@ -114,8 +110,6 @@ class FormActivity : Activity() {
         // La série reste liée au profil choisi au départ, même si on change de profil entre-temps.
         profilId = intent.getLongExtra(EXTRA_PROFILE, -1L)
         if (Prefs.get(this, profilId) == null) profilId = Prefs.actifId(this)
-        jours = intent.getIntExtra(EXTRA_DAYS, 0)
-        decalage = intent.getIntExtra(EXTRA_LOST, -1)
         // Écran recréé (mode sombre, langue du téléphone…) : on garde sa place dans la série.
         if (savedInstanceState != null) {
             index = savedInstanceState.getInt("index", 0).coerceIn(0, amis.size - 1)
@@ -325,8 +319,7 @@ class FormActivity : Activity() {
         web.evaluateJavascript("window.__snapFillCfg = $cfg;\n$fillScript", null)
     }
 
-    private fun messageComplet(p: Profil): String =
-        p.description + Pseudos.details(p.langue, ami(), jours, decalage, System.currentTimeMillis())
+    private fun messageComplet(p: Profil): String = p.description
 
     private fun remplirANouveau() {
         handler.removeCallbacks(verifRunnable)
